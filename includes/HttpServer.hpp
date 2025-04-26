@@ -1,3 +1,12 @@
+/*
+Created by Anei Markovič 26.4.2025
+
+Razred HttpServer skrbi za povezavo med client in server side.
+Razred ustvarimo z konstruktorjem, tako da mu podamo ip naslov in port kjer naj posluša.
+Zaženemo ga z metodo runServer, ki čaka na zahteve, ko dobi zahtevo jo sprejme in pošlje routerju,
+po obdelavi zahteve dobi v funkcijo sen objekt odgovor, ki ga pošlje na client side
+
+*/
 #ifndef HTTPSERVER_H
 #define HTTPSERVER_H
 #include <boost/beast/core.hpp>
