@@ -21,5 +21,7 @@ private:
 public:
     HttpServer(const std::string &ipAddress, const std::string &port);
     void runServer();
+    void parseRequest(tcp::socket socket);
+    void getRequest(tcp::socket socket);
 };
 #endif
