@@ -23,5 +23,6 @@ public:
     void runServer();
     void parseRequest(tcp::socket socket);
     void getRequest(tcp::socket socket);
+    void send(tcp::socket socket, http::response<http::string_body> res);
 };
 #endif

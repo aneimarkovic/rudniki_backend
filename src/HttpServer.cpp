@@ -39,3 +39,9 @@ void HttpServer::parseRequest(tcp::socket socket)
 void HttpServer::getRequest(tcp::socket socket){
     std::cout << "Pošiljam zahtevo na router...\n";
 }
+
+void HttpServer::send(tcp::socket socket, http::response<http::string_body> res){
+    std::cout << "Pošiljam odgovor...\n";
+    // res.prepare_payload();
+    // http::write(socket, res);
+}
