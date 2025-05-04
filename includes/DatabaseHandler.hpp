@@ -29,5 +29,6 @@ private:
 
 public:
     DatabaseHandler(const std::string &uriStr, const std::string &dbName);
+    bool insertDocument(const std::string& collectionName, const bsoncxx::document::value document);
 };
 #endif

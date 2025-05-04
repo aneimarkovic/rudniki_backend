@@ -10,3 +10,19 @@ DatabaseHandler::DatabaseHandler(const std::string &uriStr, const std::string &d
 
     std::cout << "Povezava z podatkovno bazo vzpostavljena!\n";
 }
+
+bool DatabaseHandler::insertDocument(const std::string &collectionName, const bsoncxx::document::value document)
+{
+    try
+    {
+        mongocxx::collection collection = this->db[collectionName];
+        collection.insert_one(document.view());
+        std::cout << "Dokument pravilno vstavljen!\n";
+        return true;
+    }
+    catch (const std::exception &e)
+    {
+        std::cerr << "Napaka pri vstavljanju dokumenta: " << e.what() << std::endl;
+        return false;
+    }
+}
