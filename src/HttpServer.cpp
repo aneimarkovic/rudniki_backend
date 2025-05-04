@@ -4,7 +4,7 @@
 HttpServer::HttpServer(const std::string &ipAddress, const std::string &port) : acceptor(ioContext, tcp::endpoint(net::ip::make_address(ipAddress), std::stoi(port))),
                                                                                 socket(ioContext)
 {
-    std::cout << "Server listening on: http://" << ip_address << ":" << port << "\n";
+    std::cout << "Server listening on: http://" << ipAddress << ":" << port << "\n";
 }
 
 /*Neskončna zanka, ki čaka na zahteve, ko zahteva pride ustvari novo nit (metodo getRequest), ki pošlje zahtevo routerju*/
