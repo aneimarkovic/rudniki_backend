@@ -36,8 +36,6 @@ protected:
 	timeStamp modified;
 
 public:
-	bsoncxx::oid id;
-
 	ModelTemplate(timeStamp created, timeStamp modified) : created(created), modified(modified) {}
 
 	virtual void getFromBsonDocument(const bsoncxx::document::view& docView) = 0;
@@ -46,4 +44,6 @@ public:
 	void touch();
 	std::string extractStringFromBSON(const bsoncxx::document::view& docView, const char* key);
 	timeStamp extractDateFromBSON(const bsoncxx::document::view& docView, const char* key);
+	timeStamp getCreated() const;
+	timeStamp getModifiedCreated() const;
 };
