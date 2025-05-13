@@ -13,7 +13,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # --- Boost Setup ---
-find_package(Boost 1.74.0 QUIET COMPONENTS beast asio system)
+find_package(Boost 1.74.0 QUIET COMPONENTS system)
 if(NOT Boost_FOUND)
     message(STATUS "Boost ni najden, prenašanje in prevajanje potrebnih komponent za HTTP...")
     include(FetchContent)
@@ -102,4 +102,4 @@ target_link_libraries(rudnik_app PRIVATE
     Boost::asio
     Boost::system
     MongoCXX::mongocxx
-)#
+)

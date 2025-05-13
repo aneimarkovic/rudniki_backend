@@ -36,7 +36,6 @@ protected:
 	timeStamp modified;
 
 public:
-	bsoncxx::oid id;
 
 	ModelTemplate(timeStamp created, timeStamp modified) : created(created), modified(modified) {}
 
