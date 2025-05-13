@@ -1,0 +1,89 @@
+# CMake / Build output
+######################
+build/
+[Bb]uild/
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+CTestTestfile.cmake
+Makefile
+compile_commands.json
+libs/
+tools/
+more/
+
+# User-specific output directories (from your image)
+####################################################
+out/
+output # The 890KB file named "output"
+
+# IDE-specific files
+####################
+# Visual Studio
+.vs/
+*.suo
+*.user
+*.vcxproj.user
+*.vcxproj.filters
+# If you build directly in Debug/Release subfolders (less common with out-of-source builds)
+[Dd]ebug/
+[Rr]elease/
+[Xx]64/
+[Ww][Ii][Nn]32/
+*.VC.db
+*.VC.VC.opendb
+
+# VS Code
+.vscode/
+
+# CLion / IntelliJ
+.idea/
+
+# Qt Creator
+*.pro.user*
+*.creator.user
+
+# Compiled Object files, Libraries, and Executables
+####################################################
+*.slo
+*.lo
+*.o
+*.obj
+*.a
+*.lib
+*.so
+*.so.*
+*.dylib
+*.dll
+*.exe
+*.out # Common executable name on Linux/macOS, also matches your 'out' folder.
+      # Be careful if you have other files ending in .out you want to track.
+*.ilk
+*.pdb
+*.exp
+
+# Precompiled Headers
+#####################
+*.gch
+*.pch
+
+# Temporary & Backup files
+##########################
+*~
+*.swp
+*.swo
+*.bak
+*.tmp
+*.temp
+
+# Log files
+###########
+*.log
+
+# Crash Dumps (Windows)
+#######################
+*.dmp
+
+# Apple specific
+################
+.DS_Store
