@@ -14,7 +14,9 @@
 #include <boost/beast/core.hpp>
 
 class UserController {
-    public:
+public:
+
+    bool saveUser(UserModel user);
 };
 
 #endif
