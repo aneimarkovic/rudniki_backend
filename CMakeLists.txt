@@ -13,38 +13,9 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # --- Boost Setup ---
-find_package(Boost QUIET CONFIG COMPONENTS beast asio system)
-
-set(USE_SYSTEM_BOOST FALSE)
-if(Boost_FOUND)
-
-    set(BOOST_ALL_COMPONENTS_FOUND TRUE)
-    foreach(COMPONENT beast asio system)
-        if(NOT TARGET Boost::${COMPONENT})
-            set(BOOST_ALL_COMPONENTS_FOUND FALSE)
-            message(STATUS "System Boost found, but component Boost::${COMPONENT} target is missing.")
-            break()
-        endif()
-        get_target_property(IS_IMPORTED Boost::${COMPONENT} IMPORTED)
-        get_target_property(IS_INTERFACE Boost::${COMPONENT} INTERFACE_LIBRARY) 
-                                                                             
-        if(NOT IS_IMPORTED AND NOT IS_INTERFACE) 
-
-        endif()
-    endforeach()
-    if(BOOST_ALL_COMPONENTS_FOUND AND TARGET Boost::beast AND TARGET Boost::asio AND TARGET Boost::system)  
-        message(STATUS "System Boost found (${Boost_VERSION_STRING}) with required component targets (beast, asio, system).")
-        message(STATUS "Using system Boost. SSL support depends on this installation.")
-        set(USE_SYSTEM_BOOST TRUE)
-    else()
-        message(STATUS "System Boost found (${Boost_VERSION_STRING}), but not all required component targets (Boost::beast, Boost::asio, Boost::system) are adequately defined or found. Falling back to FetchContent.")
-    endif()
-else()
-    message(STATUS "System Boost (version >= 1.74.0 with beast, asio, system) not found. Falling back to FetchContent.")
-endif()
-
-if(NOT USE_SYSTEM_BOOST)
-    message(STATUS "Boost: Using FetchContent to download and build required components.")
+find_package(Boost 1.74.0 QUIET COMPONENTS system)
+if(NOT Boost_FOUND)
+    message(STATUS "Boost ni najden, prenašanje in prevajanje potrebnih komponent za HTTP...")
     include(FetchContent)
 
     set(BOOST_INCLUDE_LIBRARIES "beast;asio;system" CACHE STRING "Boost libraries to build")
@@ -147,5 +118,4 @@ target_link_libraries(rudnik_app PRIVATE
     Boost::asio
     Boost::system
     MongoCXX::mongocxx
-    MongoCXX::bsoncxx
 )

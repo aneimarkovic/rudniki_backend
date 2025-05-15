@@ -10,8 +10,10 @@
 #include <bsoncxx/json.hpp>
 #include <mongocxx/client.hpp>
 #include <mongocxx/instance.hpp>
+
 #include <iostream>
 #include <string>
+#include <optional>
 
 class DatabaseHandler
 {
@@ -30,5 +32,8 @@ private:
 public:
     DatabaseHandler(const std::string &uriStr, const std::string &dbName);
     bool insertDocument(const std::string& collectionName, const bsoncxx::document::value document);
+
+    std::optional<bsoncxx::document::value> fetchSingleDocument(const std::string& collectionName, bsoncxx::document::view filters);
+    std::vector<bsoncxx::document::value> fetchMultipleDocuments(const std::string& collectionName, bsoncxx::document::view filters);
 };
 #endif

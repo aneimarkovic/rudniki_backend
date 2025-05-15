@@ -36,6 +36,10 @@ protected:
 	timeStamp modified;
 
 public:
+<<<<<<< HEAD
+=======
+
+>>>>>>> 58a34aa461e9b7914bc500e3c785455df4580e6d
 	ModelTemplate(timeStamp created, timeStamp modified) : created(created), modified(modified) {}
 
 	virtual void getFromBsonDocument(const bsoncxx::document::view& docView) = 0;
