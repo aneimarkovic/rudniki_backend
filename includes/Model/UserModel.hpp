@@ -46,4 +46,5 @@ public:
 	bsoncxx::document::value convertToBsonDocument() override;
 	bool validateUserData(validationType type) const;
 	static std::string getDateFromMS(timeStamp time);
+	bool authUserData() const;
 };
