@@ -1,5 +1,6 @@
 // Created by �an Misja 09/05/2025
 #include "Model/UserModel.hpp"
+#include "DatabaseHandler.hpp"
 
 #include <iostream>
 
@@ -114,4 +115,23 @@ std::string UserModel::getDateFromMS(timeStamp time)
     int day = localTime->tm_mday;
 
     return std::to_string(year) + "-" + std::to_string(month) + "-" + std::to_string(day);
+}
+
+/*
+    Funkcija, ki preveri oz avtenticira podatke uporabnika
+*/
+bool UserModel::authUserData() const
+{
+    using bsoncxx::builder::basic::kvp;
+    using bsoncxx::builder::basic::make_document;
+    
+    auto filter = make_document(
+        kvp("username", this->username),
+        kvp("email", this->email),
+        kvp("password_hash", this->password)
+    );
+
+    auto result = DatabaseHandler::fetchSingleDocument("users", filter);
+
+    return result.has_value();
 }
