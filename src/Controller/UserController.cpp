@@ -7,7 +7,7 @@
 */
 bool UserController::saveUser(UserModel user)
 {
-	DatabaseHandler handler(dbUri, dbName); // TODO ZAMENJAJ S PRAVO IMPLEMENTACIJO
+	DatabaseHandler handler("", ""); // TODO ZAMENJAJ S PRAVO IMPLEMENTACIJO
 
-	return handler.insertDocument("users", user.convertToBsonDocument())
+	return handler.insertDocument("users", user.convertToBsonDocument());
 }

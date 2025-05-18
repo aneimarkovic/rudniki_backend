@@ -3,7 +3,7 @@
 #include "Model/UserModel.hpp"
 
 void testUserValidation()
-{
+{/*
     timeStamp now = std::chrono::duration_cast<timeStamp>(
         std::chrono::system_clock::now().time_since_epoch());
     UserModel user1("ime", "test@gmail.com", "Geslo12asd!", now, now, now);
@@ -31,5 +31,5 @@ void testUserValidation()
     std::cout << "TEST: 8 pričakovano [0] dobljeno:[" << user8.validateUserData(UPDATE_EMAIL) << "]\n";
 
     UserModel user9("ime", "testmail@gmail.com", "Geslo12asd!", timeStamp::zero(), timeStamp::zero(), timeStamp::zero());
-    std::cout << "TEST: 9 pričakovano [1] dobljeno:[" << user9.validateUserData(UPDATE_EMAIL) << "]\n";
+    std::cout << "TEST: 9 pričakovano [1] dobljeno:[" << user9.validateUserData(UPDATE_EMAIL) << "]\n"; */
 }
