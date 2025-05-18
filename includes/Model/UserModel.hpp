@@ -2,18 +2,28 @@
 
 #include <chrono>
 #include <string>
+#include <regex>
+#include <string>
 
 #include "Model/ModelTemplate.hpp"
 
 /*
-	Created by Žan Misja 09/05/2025
+	Created by ï¿½an Misja 09/05/2025
 
-	Razred UserModel skrbi za shranjevanje uporabniških podatkov
+	Razred UserModel skrbi za shranjevanje uporabniï¿½kih podatkov
 	Imamo en konstruktor za ustvarjanje uporabnika znotraj http serverja. 
 	Default konstruktor obstaja.
 
 	Override-a funkcije iz ModelTemplate, ki se uporabljajo za preslikavo objekta
 */
+
+enum validationType{
+	LOGIN,
+	REGISTRATION,
+	UPDATE,
+	UPDATE_EMAIL,
+};
+
 class UserModel : public ModelTemplate
 {
 public:
@@ -22,10 +32,11 @@ public:
 	std::string email;
 	timeStamp birthDate;
 
-	UserModel(std::string username, std::string email, std::string password, timeStamp createdAt, timeStamp modifiedAt )
+	UserModel(std::string username, std::string email, std::string password, timeStamp birthDate, timeStamp createdAt, timeStamp modifiedAt )
 		: username(std::move(username)),
 		email(std::move(email)),
 		password(std::move(password)),
+		birthDate(birthDate),
 		ModelTemplate(createdAt, modifiedAt) {
 	} 
 
@@ -33,4 +44,6 @@ public:
 
 	void getFromBsonDocument(const bsoncxx::document::view& docView) override;
 	bsoncxx::document::value convertToBsonDocument() override;
+	bool validateUserData(validationType type) const;
+	static std::string getDateFromMS(timeStamp time);
 };

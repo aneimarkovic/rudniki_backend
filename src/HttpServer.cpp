@@ -1,5 +1,6 @@
 // Created by Anei Markovič 26.4.2025
 #include "HttpServer.hpp"
+#include "Controller/UserController.hpp"
 
 HttpServer::HttpServer(const std::string &ipAddress, const std::string &port) : acceptor(ioContext, tcp::endpoint(net::ip::make_address(ipAddress), std::stoi(port))),
                                                                                 socket(ioContext)
@@ -43,6 +44,9 @@ void HttpServer::parseRequest(tcp::socket socket)
 void HttpServer::getRequest(tcp::socket socket)
 {
     std::cout << "Pošiljam zahtevo na router...\n";
+    // boost::beast::flat_buffer buffer;
+    // http::request<http::string_body> req;
+    // http::read(socket, buffer, req);
 }
 
 /*Metoda, ki pošlje odgovor nazaj na clientside*/
