@@ -78,3 +78,35 @@ void Router::createRoute(requestType type, std::string& URL, routeFunction funct
 		break;
 	}
 }
+
+/*
+	Naredi route preko [createRoute] za get
+*/
+void Router::createGetRoute(std::string& URL, routeFunction function)
+{
+	createRoute(GET, URL, function);
+}
+
+/*
+	Naredi route preko [createRoute] za post
+*/
+void Router::createPostRoute(std::string& URL, routeFunction function)
+{
+	createRoute(POST, URL, function);
+}
+
+/*
+	Naredi route preko [createRoute] za put
+*/
+void Router::createPutRoute(std::string& URL, routeFunction function)
+{
+	createRoute(PUT, URL, function);
+}
+
+/*
+	Naredi route preko [createRoute] za delete
+*/
+void Router::createDeleteRoute(std::string& URL, routeFunction function)
+{
+	createRoute(DEL, URL, function);
+}
