@@ -12,94 +12,94 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-# --- Boost Setup ---
-find_package(Boost 1.74.0 QUIET COMPONENTS system)
+find_package(Boost 1.74.0 QUIET COMPONENTS system beast asio)
+
 if(NOT Boost_FOUND)
-    message(STATUS "Boost ni najden, prenašanje in prevajanje potrebnih komponent za HTTP...")
-    include(FetchContent)
-    set(BOOST_INCLUDE_LIBRARIES "beast;asio;system" CACHE STRING "")
-    set(BUILD_TESTING OFF CACHE BOOL "")
-    set(BOOST_BUILD_TESTS OFF CACHE BOOL "")
-    set(BOOST_BUILD_EXAMPLES OFF CACHE BOOL "")
-    set(BOOST_ASIO_ENABLE_SSL OFF CACHE BOOL "" FORCE)
-    FetchContent_Declare(
-        BoostSource
-        GIT_REPOSITORY https://github.com/boostorg/boost.git
-        GIT_TAG        boost-1.88.0
-        GIT_SHALLOW    TRUE
-        GIT_PROGRESS   TRUE
-        GIT_SUBMODULE_UPDATE_FLAGS "--depth;1"
-    )
-    message(STATUS "Prenašanje in konfiguriranje Boost (to lahko traja dolgo)... Prosimo, počakajte.")
-    FetchContent_MakeAvailable(BoostSource)
-    if(NOT (TARGET Boost::beast AND TARGET Boost::asio AND TARGET Boost::system))
-        message(FATAL_ERROR "Napaka: Ena ali več zahtevanih Boost tarč (Beast, Asio, System) NI bilo ustvarjenih po prenosu. Preverite izpis.")
+    message(STATUS "Required Boost components (system, beast, asio) not found via find_package.")
+    if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+        message(FATAL_ERROR "Boost not found. On macOS, you can typically install Boost (including system, beast, asio components) via Homebrew (e.g., 'brew install boost'). Please consult the README.md for detailed installation instructions and then re-run CMake.")
+    elseif(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+        message(FATAL_ERROR "Boost not found. On Windows, please install the required Boost components (system, beast, asio). Refer to the README.md for installation instructions, then re-run CMake.")
+    elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+        message(FATAL_ERROR "Boost not found. On Linux, please install the Boost development packages (e.g., for Debian/Ubuntu: 'sudo apt update && sudo apt install libboost-system-dev libboost-beast-dev libboost-asio-dev'). Refer to the README.md for more details and then re-run CMake.")
     else()
-        message(STATUS "Minimalni Boost (Beast, Asio, System) prenesen in konfiguriran (brez SSL).")
+        message(FATAL_ERROR "Boost not found. Please install Boost (including system, beast, asio components) for your system (${CMAKE_SYSTEM_NAME}). Refer to the README.md for installation instructions, then re-run CMake.")
     endif()
-else()
-    message(STATUS "Najden Boost: ${Boost_VERSION_STRING}")
-    message(STATUS "Uporablja se sistemski Boost. Podpora za SSL v Boost.Asio je odvisna od te namestitve.")
 endif()
 
-# --- MongoDB C++ Driver Setup ---
-find_package(MongoCXX QUIET)
-if(NOT MongoCXX_FOUND)
-    message(STATUS "MongoDB C++ gonilnik (mongocxx) ni najden, prenašanje in prevajanje...")
+message(STATUS "Found Boost: ${Boost_VERSION_STRING}")
+if(NOT Boost_SYSTEM_FOUND)
+    message(FATAL_ERROR "Boost 'system' component was not found. Please ensure your Boost installation includes it.")
+endif()
+if(NOT Boost_BEAST_FOUND)
+    message(FATAL_ERROR "Boost 'beast' component was not found. Please ensure your Boost installation includes it.")
+endif()
+if(NOT Boost_ASIO_FOUND)
+    message(FATAL_ERROR "Boost 'asio' component was not found. Please ensure your Boost installation includes it.")
+endif()
+message(STATUS "Required Boost components (system, beast, asio) successfully located.")
+
+if(NOT TARGET Boost::system)
+    message(FATAL_ERROR "CMake target Boost::system is not available. Your Boost installation might not be correctly configured for CMake.")
+endif()
+if(NOT TARGET Boost::beast)
+    message(FATAL_ERROR "CMake target Boost::beast is not available. Your Boost installation might not be correctly configured for CMake.")
+endif()
+if(NOT TARGET Boost::asio)
+    message(FATAL_ERROR "CMake target Boost::asio is not available. Your Boost installation might not be correctly configured for CMake.")
+endif()
+
+find_package(bsoncxx CONFIG QUIET)
+if(NOT bsoncxx_FOUND)
+    message(FATAL_ERROR "bsoncxx (del MongoDB C++ gonilnika) ni bil najden. Prosimo, preverite namestitev preko vcpkg in README.md.")
+else()
+    message(STATUS "Found bsoncxx (del MongoDB C++ gonilnika). Version: ${bsoncxx_VERSION}")
+    if(NOT (TARGET mongo::bsoncxx_static OR TARGET mongo::bsoncxx_shared))
+        message(FATAL_ERROR "CMake tarči mongo::bsoncxx_static ali mongo::bsoncxx_shared nista na voljo, čeprav je bil bsoncxx najden. Preverite vcpkg namestitev.")
+    endif()
+endif()
+
+find_package(mongocxx CONFIG QUIET)
+if(NOT mongocxx_FOUND)
+    message(FATAL_ERROR "mongocxx (MongoDB C++ gonilnik) ni bil najden. Prosimo, preverite namestitev preko vcpkg in README.md.")
+else()
+    message(STATUS "Found mongocxx (MongoDB C++ gonilnik). Version: ${mongocxx_VERSION}")
+    if(NOT (TARGET mongo::mongocxx_static OR TARGET mongo::mongocxx_shared))
+        message(FATAL_ERROR "CMake tarči mongo::mongocxx_static ali mongo::mongocxx_shared nista na voljo, čeprav je bil mongocxx najden. Preverite vcpkg namestitev.")
+    endif()
+endif()
+
+set(MONGO_BSONCXX_LIBRARY "$<IF:$<TARGET_EXISTS:mongo::bsoncxx_static>,mongo::bsoncxx_static,mongo::bsoncxx_shared>")
+set(MONGO_MONGOCXX_LIBRARY "$<IF:$<TARGET_EXISTS:mongo::mongocxx_static>,mongo::mongocxx_static,mongo::mongocxx_shared>")
+
+message(STATUS "MongoDB C++ driver libraries configured as: BSON=${MONGO_BSONCXX_LIBRARY}, Driver=${MONGO_MONGOCXX_LIBRARY}")
+
+add_subdirectory(src)
+include_directories(includes)
+
+find_package(Catch2 3 QUIET)
+
+if(NOT Catch2_FOUND)
+    message(STATUS "System Catch2 v3 not found. Falling back to FetchContent.")
     include(FetchContent)
-    set(ENABLE_SSL OFF CACHE BOOL "" FORCE)
-    set(BSONCXX_POLY_USE_BOOST OFF CACHE BOOL "" FORCE)
-    set(FETCHCONTENT_ORIGINAL_BUILD_SHARED_LIBS "${BUILD_SHARED_LIBS}")
-    set(BUILD_SHARED_LIBS OFF)
     FetchContent_Declare(
-        mongocxxdriver
-        GIT_REPOSITORY https://github.com/mongodb/mongo-cxx-driver.git
-        GIT_TAG        r4.1.0
-        GIT_SHALLOW    TRUE
-        GIT_PROGRESS   TRUE
+        Catch2
+        GIT_REPOSITORY https://github.com/catchorg/Catch2.git
+        GIT_TAG        v3.8.1
     )
-    message(STATUS "Prenašanje in konfiguriranje MongoDB C++ gonilnika (to lahko traja dolgo)... Prosimo, počakajte.")
-    FetchContent_MakeAvailable(mongocxxdriver)
-    set(BUILD_SHARED_LIBS "${FETCHCONTENT_ORIGINAL_BUILD_SHARED_LIBS}")
-    unset(FETCHCONTENT_ORIGINAL_BUILD_SHARED_LIBS)
-    if(TARGET MongoCXX::mongocxx AND TARGET MongoCXX::bsoncxx)
-        message(STATUS "MongoDB C++ gonilnik (MongoCXX::mongocxx, MongoCXX::bsoncxx) ALIAS tarče najdene.")
-        set(MongoCXX_FOUND TRUE CACHE INTERNAL "")
-    elseif(TARGET mongocxx_static AND TARGET bsoncxx_static)
-        message(STATUS "MongoDB C++ gonilnik (mongocxx_static, bsoncxx_static) dejanske STATIČNE tarče najdene. Ustvarjanje ALIASov...")
-        add_library(MongoCXX::mongocxx ALIAS mongocxx_static)
-        add_library(MongoCXX::bsoncxx ALIAS bsoncxx_static)
-        set(MongoCXX_FOUND TRUE CACHE INTERNAL "")
-    else()
-        message(WARNING "OPOZORILO: Pričakovane MongoDB C++ gonilniške tarče (MongoCXX::* ali *_static) niso bile jasno identificirane po FetchContent_MakeAvailable. Povezovanje bo poskušeno, vendar lahko spodleti.")
-        set(MongoCXX_FOUND TRUE CACHE INTERNAL "MongoDB C++ driver fetched, target visibility unclear")
-    endif()
+    FetchContent_MakeAvailable(Catch2)
+    message(STATUS "Catch2 (v3.6.0) obtained via FetchContent.")
 else()
-    message(STATUS "Najden MongoDB C++ gonilnik: ${MongoCXX_VERSION}")
+    message(STATUS "Found system Catch2: ${Catch2_VERSION}")
 endif()
 
-# --- Application ---
-file(GLOB_RECURSE APP_SOURCES CONFIGURE_DEPENDS
-    "src/*.cpp"
-    "src/**/*.cpp"
-)
-if(NOT APP_SOURCES)
-    message(WARNING "Nobena izvorna .cpp datoteka ni bila najdena v mapi 'src'.")
-endif()
-add_executable(rudnik_app ${APP_SOURCES})
-
-if(WIN32)
-    target_compile_definitions(rudnik_app PRIVATE _WIN32_WINNT=0x0A00)
+if(NOT TARGET Catch2::Catch2WithMain)
+    if(TARGET Catch2::Catch2) 
+        message(WARNING "Target Catch2::Catch2WithMain not found, but Catch2::Catch2 is available. You might need to provide your own main() in tests or adjust test/CMakeLists.txt if using system Catch2.")
+    else()
+        message(FATAL_ERROR "Catch2 was found or fetched, but the required CMake target (Catch2::Catch2WithMain or Catch2::Catch2) is not available. Check your Catch2 installation or FetchContent setup.")
+    endif()
 endif()
 
-target_include_directories(rudnik_app PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/includes
-    ${CMAKE_CURRENT_SOURCE_DIR}/src
-)
-
-target_link_libraries(rudnik_app PRIVATE
-    Boost::beast
-    Boost::asio
-    Boost::system
-    MongoCXX::mongocxx
-)
+enable_testing()
+add_subdirectory(test)

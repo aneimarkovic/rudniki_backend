@@ -27,6 +27,7 @@ int main()
 {
     try
     {
+
         std::string dbUri = "<INSERT_URI>";
         std::string dbName = "mines";
         DatabaseHandler db(dbUri, dbName);

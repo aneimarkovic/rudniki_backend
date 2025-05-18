@@ -36,10 +36,16 @@ std::optional<bsoncxx::document::value> DatabaseHandler::fetchSingleDocument(con
     {
         mongocxx::collection collection = this->db[collectionName];
 
-        std::optional<bsoncxx::document::value> maybe_result = collection.find_one(filters);
+        bsoncxx::stdx::optional<bsoncxx::document::value> driver_find_one_result = collection.find_one(filters);
+
+        std::optional<bsoncxx::document::value> maybe_result; 
+
+        if (driver_find_one_result) {
+            maybe_result = std::move(*driver_find_one_result);
+        }
 
         if (maybe_result) {
-            return maybe_result; 
+            return maybe_result;
         }
         else {
             return {}; 
