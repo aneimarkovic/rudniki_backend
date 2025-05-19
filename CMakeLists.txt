@@ -15,7 +15,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 SET(CMAKE_FIND_PACKAGE_SORT_ORDER NATURAL)
 SET(CMAKE_FIND_PACKAGE_SORT_DIRECTION DEC)
 
-find_package(Boost 1.88 QUIET COMPONENTS system)
+find_package(Boost 1.88 QUIET COMPONENTS system beast asio)
 
 if(NOT Boost_FOUND)
     message(STATUS "Required Boost components (system, beast, asio) not found via find_package.")

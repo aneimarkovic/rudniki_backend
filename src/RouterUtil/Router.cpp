@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <utility>
+#include <regex>
 
 std::map<std::string, routeFunction> Router::routesPost{};
 std::map<std::string, routeFunction> Router::routesGet{};
@@ -11,7 +12,7 @@ std::map<std::string, routeFunction> Router::routesDelete{};
 /*
 	Funkcija vzame nek [originalUrl] in ga pretvori v regex pri čemer zamenja parametre (:id) z ([^/]+)
 */
-std::string Router::convertUrlToRegexForm(std::string& originalUrl)
+std::string Router::convertUrlToRegexForm(const std::string& originalUrl)
 {
 	// Pridobi pozicije vseh parametrov
 	std::vector<int> parameterPositions;
@@ -46,11 +47,20 @@ std::string Router::convertUrlToRegexForm(std::string& originalUrl)
 }
 
 /*
-	Funkcija vzame kot parameter [URL] in shrani njegove parametre. Primer :id shrani kot ["id", "VREDNOST ID"]
+	Funkcija vzame kot parameter [URL] in shrani njegove parametre.
 */
-std::map<std::string, std::string> Router::getParametersFromUrl(std::string& URL, std::string& urlRegex)
+std::vector<std::string> Router::getParametersFromUrl(const std::string& URL, const std::regex& urlRegex)
 {
-	
+	std::vector<std::string> capturedValues;
+	std::smatch matchResults;
+
+	if (std::regex_match(URL, matchResults, urlRegex)) {
+		for (size_t i = 1; i < matchResults.size(); ++i) {
+			capturedValues.push_back(matchResults[i].str());
+		}
+	}
+
+	return capturedValues;
 }
 
 /*
@@ -109,4 +119,61 @@ void Router::createPutRoute(std::string& URL, routeFunction function)
 void Router::createDeleteRoute(std::string& URL, routeFunction function)
 {
 	createRoute(DEL, URL, function);
+}
+
+
+/*
+	Funkcija glede na podan URL zažene ustrezno funkcijo
+*/
+void Router::routeSelector(http::verb method, std::string& URL, const request& request, response& response)
+{
+	std::map<std::string, routeFunction>* currentRoutingTable;
+
+	switch (method)
+	{
+	case boost::beast::http::verb::delete_:
+		currentRoutingTable = &Router::routesDelete;
+		break;
+	case boost::beast::http::verb::get:
+		currentRoutingTable = &Router::routesGet;
+		break;
+	case boost::beast::http::verb::post:
+		currentRoutingTable = &Router::routesPost;
+		break;
+	case boost::beast::http::verb::put:
+		currentRoutingTable = &Router::routesPut;
+		break;
+	default:
+		return;
+	}
+
+	for (const auto& pair : *currentRoutingTable) 
+	{
+		const std::string& urlPattern = pair.first;
+		const std::regex urlRegex(urlPattern);
+		const routeFunction& function = pair.second; 
+
+		if (regex_match(URL, urlRegex))
+		{
+			if (urlPattern.find("([^/]+)"))
+			{
+				UrlArguments = getParametersFromUrl(URL, urlRegex);
+			}
+
+			function(request, response);
+			return;
+		}
+	}
+
+	// TODO Naredi tu da gre na 404
+}
+
+void Router::handleRequest(const request& request, response& response)
+{
+	http::verb requestMethod = request.method();
+
+	boost::string_view target_view = request.target();
+	std::string URL(target_view.data(), target_view.length());
+
+	routeSelector(requestMethod, URL, request, response);
 }

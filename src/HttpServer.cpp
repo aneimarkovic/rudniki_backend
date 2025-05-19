@@ -2,6 +2,7 @@
 #include "HttpServer.hpp"
 #include "Controller/UserController.hpp"
 #include "DatabaseHandler.hpp"
+#include "RouterUtil/Router.hpp"
 
 HttpServer::HttpServer(const std::string &ipAddress, const std::string &port) : acceptor(ioContext, tcp::endpoint(net::ip::make_address(ipAddress), std::stoi(port))),
                                                                                 socket(ioContext)
@@ -25,15 +26,15 @@ void HttpServer::parseRequest(tcp::socket socket)
     try
     {
         boost::beast::flat_buffer buffer;
-        http::request<http::string_body> req;
-        http::read(socket, buffer, req);
-        http::response<http::string_body> res{http::status::ok, req.version()};
+        http::request<http::string_body> request;
+        http::read(socket, buffer, request);
+        http::response<http::string_body> response{http::status::ok, request.version()};
 
-        // res.set(http::field::server, "Rudnik http server");
-        // res.set(http::field::content_type, "text/plain");
-        // res.body() = "Hello rudar from http server";
-        // res.prepare_payload();
-        // http::write(socket, res);
+        // response.set(http::field::server, "Rudnik http server");
+        // response.set(http::field::content_type, "text/plain");
+        // response.body() = "Hello rudar from http server";
+        // response.prepare_payload();
+        // http::write(socket, response);
     }
     catch (const std::exception &ex)
     {
@@ -66,12 +67,36 @@ void HttpServer::getRequest(tcp::socket socket)
     res.body() = temp;
     res.prepare_payload();
     http::write(socket, res);
+
+    // beast::flat_buffer buffer;
+    // beast::error_code errorCode;
+    // http::request<http::string_body> req;
+
+    // http::read(socket, buffer, req, errorCode);
+
+    // if (errorCode == http::error::end_of_stream) {
+    //     socket.shutdown(tcp::socket::shutdown_send, errorCode); // Client je zapr connection preden je poslal vse
+    //     return;
+    // }
+
+    // if (errorCode) {
+    //     std::cerr << "Napaka pri branju zahteve: " << errorCode.message() << std::endl;
+    //     return;
+    // }
+
+    // http::response<http::string_body> res;
+    // res.version(req.version()); 
+    // res.keep_alive(req.keep_alive());
+
+    // //ROUTER CALL
+    // Router newRoute;
+    // newRoute.handleRequest(req, res);
 }
 
 /*Metoda, ki pošlje odgovor nazaj na clientside*/
-void HttpServer::send(tcp::socket socket, http::response<http::string_body> res)
+void HttpServer::send(tcp::socket socket, http::response<http::string_body> response)
 {
     std::cout << "Pošiljam odgovor...\n";
-    // res.prepare_payload();
-    // http::write(socket, res);
+    // response.prepare_payload();
+    // http::write(socket, response);
 }
