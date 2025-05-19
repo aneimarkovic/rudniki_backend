@@ -50,12 +50,20 @@ void HttpServer::getRequest(tcp::socket socket)
     bsoncxx::document::view filters{};
     std::string collName = "mines";
     std::vector<bsoncxx::document::value> scrapperVec = DatabaseHandler::fetchMultipleDocuments(collName, filters);
-    std::string temp = "";
+    
+    std::string temp = "{";
+    int counter = 0;
     for (auto &&i : scrapperVec)
     {
         // std::cout << bsoncxx::to_json(i) << std::endl;
-        temp += bsoncxx::to_json(i);
+        temp += "\"" + std::to_string(counter) + "\":" + bsoncxx::to_json(i);
+        if(counter < scrapperVec.size()-1){
+            temp += ",";
+        }
+        counter++;
     }
+
+    temp += "}";
 
     boost::beast::flat_buffer buffer;
     http::request<http::string_body> req;
@@ -64,6 +72,7 @@ void HttpServer::getRequest(tcp::socket socket)
     http::response<http::string_body> res{http::status::ok, req.version()};
     res.set(http::field::server, "Rudnik http server");
     res.set(http::field::content_type, "application/json");
+    res.set(http::field::access_control_allow_origin, "*");
     res.body() = temp;
     res.prepare_payload();
     http::write(socket, res);
