@@ -2,6 +2,8 @@
 #include <map>
 #include <string>
 #include <functional>
+#include <regex>
+
 #include <boost/beast/http.hpp>
 
 // Pripravi vse nove tipe, ki jih rabimo
@@ -31,15 +33,15 @@ public:
 	static std::map<std::string, routeFunction> routesPut;
 	static std::map<std::string, routeFunction> routesDelete;
 
-	// map za shranjevanje URL argumentov. Primer /:id shrani id 
-	std::map<std::string, std::string> UrlArguments;
+	// Vector za shranjevanje URL argumentov. Primer /:id shrani id 
+	std::vector<std::string> UrlArguments;
 
-	static std::map<std::string, std::string> getParametersFromUrl(std::string& URL, std::string& urlRegex);
-	static std::string convertUrlToRegexForm(std::string& originalUrl);
-	static void routeSelector(http::verb method, std::string& URL, const request& req, response& res);
+	static std::vector<std::string> getParametersFromUrl(const std::string& URL, const std::regex& urlRegex);
+	static std::string convertUrlToRegexForm(const std::string& originalUrl);
+	void routeSelector(http::verb method, std::string& URL, const request& request, response& response);
 
 	// Univerzalna funkcija, da se izogibamo ponavljanju znotraj create funkcij
-	static void createRoute(requestType type, std::string& URL, routeFunction );
+	static void createRoute(requestType type, std::string& URL, routeFunction function);
 
 public:
 
@@ -49,5 +51,5 @@ public:
 	static void createPutRoute(std::string& URL, routeFunction function);
 	static void createDeleteRoute(std::string& URL, routeFunction function);
 
-	void handleRequest(const request& req, response& res);
+	void handleRequest(const request& request, response& response);
 };

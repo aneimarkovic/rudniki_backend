@@ -24,15 +24,15 @@ void HttpServer::parseRequest(tcp::socket socket)
     try
     {
         boost::beast::flat_buffer buffer;
-        http::request<http::string_body> req;
-        http::read(socket, buffer, req);
-        http::response<http::string_body> res{http::status::ok, req.version()};
+        http::request<http::string_body> request;
+        http::read(socket, buffer, request);
+        http::response<http::string_body> response{http::status::ok, request.version()};
 
-        // res.set(http::field::server, "Rudnik http server");
-        // res.set(http::field::content_type, "text/plain");
-        // res.body() = "Hello rudar from http server";
-        // res.prepare_payload();
-        // http::write(socket, res);
+        // response.set(http::field::server, "Rudnik http server");
+        // response.set(http::field::content_type, "text/plain");
+        // response.body() = "Hello rudar from http server";
+        // response.prepare_payload();
+        // http::write(socket, response);
     }
     catch (const std::exception &ex)
     {
@@ -45,14 +45,14 @@ void HttpServer::getRequest(tcp::socket socket)
 {
     std::cout << "Pošiljam zahtevo na router...\n";
     // boost::beast::flat_buffer buffer;
-    // http::request<http::string_body> req;
-    // http::read(socket, buffer, req);
+    // http::request<http::string_body> request;
+    // http::read(socket, buffer, request);
 }
 
 /*Metoda, ki pošlje odgovor nazaj na clientside*/
-void HttpServer::send(tcp::socket socket, http::response<http::string_body> res)
+void HttpServer::send(tcp::socket socket, http::response<http::string_body> response)
 {
     std::cout << "Pošiljam odgovor...\n";
-    // res.prepare_payload();
-    // http::write(socket, res);
+    // response.prepare_payload();
+    // http::write(socket, response);
 }

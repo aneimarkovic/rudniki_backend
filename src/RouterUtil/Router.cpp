@@ -12,7 +12,7 @@ std::map<std::string, routeFunction> Router::routesDelete{};
 /*
 	Funkcija vzame nek [originalUrl] in ga pretvori v regex pri čemer zamenja parametre (:id) z ([^/]+)
 */
-std::string Router::convertUrlToRegexForm(std::string& originalUrl)
+std::string Router::convertUrlToRegexForm(const std::string& originalUrl)
 {
 	// Pridobi pozicije vseh parametrov
 	std::vector<int> parameterPositions;
@@ -46,13 +46,6 @@ std::string Router::convertUrlToRegexForm(std::string& originalUrl)
 	return newUrl;
 }
 
-/*
-	Funkcija vzame kot parameter [URL] in shrani njegove parametre. Primer :id shrani kot ["id", "VREDNOST ID"]
-*/
-std::map<std::string, std::string> Router::getParametersFromUrl(std::string& URL, std::string& urlRegex)
-{
-	return {};
-}
 
 /*
 	Vzame tip requesta, URL pretvori s pomočjo [getParametersFromUrl] in nato shrani
@@ -116,7 +109,7 @@ void Router::createDeleteRoute(std::string& URL, routeFunction function)
 /*
 	Funkcija glede na podan URL zažene ustrezno funkcijo
 */
-static void routeSelector(http::verb method, std::string& URL, const request& req, response& res)
+void Router::routeSelector(http::verb method, std::string& URL, const request& request, response& response)
 {
 	std::map<std::string, routeFunction>* currentRoutingTable;
 
@@ -146,10 +139,25 @@ static void routeSelector(http::verb method, std::string& URL, const request& re
 
 		if (regex_match(URL, urlRegex))
 		{
-			function(req, res);
+			if (urlPattern.find("([^/]+)"))
+			{
+				UrlArguments = getParametersFromUrl(URL, urlRegex);
+			}
+
+			function(request, response);
 			return;
 		}
 	}
 
 	// TODO Naredi tu da gre na 404
+}
+
+void Router::handleRequest(const request& request, response& response)
+{
+	http::verb requestMethod = request.method();
+
+	boost::string_view target_view = request.target();
+	std::string URL(target_view.data(), target_view.length());
+
+	routeSelector(requestMethod, URL, request, response);
 }
