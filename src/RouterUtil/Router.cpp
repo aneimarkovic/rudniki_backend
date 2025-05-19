@@ -46,6 +46,22 @@ std::string Router::convertUrlToRegexForm(const std::string& originalUrl)
 	return newUrl;
 }
 
+/*
+	Funkcija vzame kot parameter [URL] in shrani njegove parametre.
+*/
+std::vector<std::string> Router::getParametersFromUrl(const std::string& URL, const std::regex& urlRegex)
+{
+	std::vector<std::string> capturedValues;
+	std::smatch matchResults;
+
+	if (std::regex_match(URL, matchResults, urlRegex)) {
+		for (size_t i = 1; i < matchResults.size(); ++i) {
+			capturedValues.push_back(matchResults[i].str());
+		}
+	}
+
+	return capturedValues;
+}
 
 /*
 	Vzame tip requesta, URL pretvori s pomočjo [getParametersFromUrl] in nato shrani

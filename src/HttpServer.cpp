@@ -1,6 +1,7 @@
 // Created by Anei Markovič 26.4.2025
 #include "HttpServer.hpp"
 #include "Controller/UserController.hpp"
+#include "RouterUtil/Router.hpp"
 
 HttpServer::HttpServer(const std::string &ipAddress, const std::string &port) : acceptor(ioContext, tcp::endpoint(net::ip::make_address(ipAddress), std::stoi(port))),
                                                                                 socket(ioContext)
@@ -43,10 +44,29 @@ void HttpServer::parseRequest(tcp::socket socket)
 /*Metoda, ki pošlje zahtevo routerju*/
 void HttpServer::getRequest(tcp::socket socket)
 {
-    std::cout << "Pošiljam zahtevo na router...\n";
-    // boost::beast::flat_buffer buffer;
-    // http::request<http::string_body> request;
-    // http::read(socket, buffer, request);
+    beast::flat_buffer buffer;
+    beast::error_code errorCode;
+    http::request<http::string_body> req;
+
+    http::read(socket, buffer, req, errorCode);
+
+    if (errorCode == http::error::end_of_stream) {
+        socket.shutdown(tcp::socket::shutdown_send, errorCode); // Client je zapr connection preden je poslal vse
+        return;
+    }
+
+    if (errorCode) {
+        std::cerr << "Napaka pri branju zahteve: " << errorCode.message() << std::endl;
+        return;
+    }
+
+    http::response<http::string_body> res;
+    res.version(req.version()); 
+    res.keep_alive(req.keep_alive());
+
+    //ROUTER CALL
+    Router newRoute;
+    newRoute.handleRequest(req, res);
 }
 
 /*Metoda, ki pošlje odgovor nazaj na clientside*/
