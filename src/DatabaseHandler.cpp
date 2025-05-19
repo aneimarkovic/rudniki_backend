@@ -94,4 +94,3 @@ std::vector<bsoncxx::document::value> DatabaseHandler::fetchMultipleDocuments( c
         return {}; 
     }
 }
-
