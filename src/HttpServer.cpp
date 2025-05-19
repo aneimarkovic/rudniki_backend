@@ -1,6 +1,7 @@
 // Created by Anei Markovič 26.4.2025
 #include "HttpServer.hpp"
 #include "Controller/UserController.hpp"
+#include "DatabaseHandler.hpp"
 
 HttpServer::HttpServer(const std::string &ipAddress, const std::string &port) : acceptor(ioContext, tcp::endpoint(net::ip::make_address(ipAddress), std::stoi(port))),
                                                                                 socket(ioContext)
@@ -44,9 +45,27 @@ void HttpServer::parseRequest(tcp::socket socket)
 void HttpServer::getRequest(tcp::socket socket)
 {
     std::cout << "Pošiljam zahtevo na router...\n";
-    // boost::beast::flat_buffer buffer;
-    // http::request<http::string_body> req;
-    // http::read(socket, buffer, req);
+
+    bsoncxx::document::view filters{};
+    std::string collName = "mines";
+    std::vector<bsoncxx::document::value> scrapperVec = DatabaseHandler::fetchMultipleDocuments(collName, filters);
+    std::string temp = "";
+    for (auto &&i : scrapperVec)
+    {
+        // std::cout << bsoncxx::to_json(i) << std::endl;
+        temp += bsoncxx::to_json(i);
+    }
+
+    boost::beast::flat_buffer buffer;
+    http::request<http::string_body> req;
+    http::read(socket, buffer, req);
+
+    http::response<http::string_body> res{http::status::ok, req.version()};
+    res.set(http::field::server, "Rudnik http server");
+    res.set(http::field::content_type, "application/json");
+    res.body() = temp;
+    res.prepare_payload();
+    http::write(socket, res);
 }
 
 /*Metoda, ki pošlje odgovor nazaj na clientside*/

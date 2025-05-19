@@ -23,8 +23,6 @@ target_include_directories(RudnikCore PUBLIC
 )
 
 target_link_libraries(RudnikCore PUBLIC
-    Boost::beast
-    Boost::asio
     Boost::system
     ${MONGO_BSONCXX_LIBRARY}
     ${MONGO_MONGOCXX_LIBRARY}
@@ -51,6 +49,3 @@ if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${MAIN_APP_ENTRY_POINT_FILE}")
 else()
     message(WARNING "Glavna .cpp datoteka aplikacije ('${MAIN_APP_ENTRY_POINT_FILE}') ni bila najdena v mapi 'src'. Izvršljiva datoteka 'rudnik_app' ne bo ustvarjena.")
 endif()
-
-
-

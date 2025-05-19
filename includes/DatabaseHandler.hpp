@@ -18,22 +18,20 @@
 class DatabaseHandler
 {
 private:
-    mongocxx::instance instance;
-    mongocxx::uri uri;
-    mongocxx::options::client clientOptions;
-    mongocxx::client connection;
-    mongocxx::database db;
-    static mongocxx::client createClientWithApi(const mongocxx::uri &uri, mongocxx::options::client &options){
-        mongocxx::options::server_api api_opts{mongocxx::options::server_api::version::k_version_1};
-        options.server_api_opts(api_opts);
-        return mongocxx::client{uri, options};
-    }
+    static mongocxx::instance instance;
+    static mongocxx::uri uri;
+    static mongocxx::options::client clientOptions;
+    static mongocxx::client connection;
+    static mongocxx::database db;
+
+    static mongocxx::client createClientWithApi(const mongocxx::uri &uri, mongocxx::options::client &options);
 
 public:
-    DatabaseHandler(const std::string &uriStr, const std::string &dbName);
-    bool insertDocument(const std::string& collectionName, const bsoncxx::document::value document);
+    // DatabaseHandler(const std::string &uriStr, const std::string &dbName);
 
-    std::optional<bsoncxx::document::value> fetchSingleDocument(const std::string& collectionName, bsoncxx::document::view filters);
-    std::vector<bsoncxx::document::value> fetchMultipleDocuments(const std::string& collectionName, bsoncxx::document::view filters);
+    static bool insertDocument(const std::string& collectionName, const bsoncxx::document::value document);
+
+    static std::optional<bsoncxx::document::value> fetchSingleDocument(const std::string& collectionName, bsoncxx::document::view filters);
+    static std::vector<bsoncxx::document::value> fetchMultipleDocuments(const std::string& collectionName, bsoncxx::document::view filters);
 };
 #endif

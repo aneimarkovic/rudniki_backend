@@ -6,7 +6,7 @@
 #include "HttpServer.hpp"
 #include "DatabaseHandler.hpp"
 
-void testDatabaseInsert(DatabaseHandler &db)
+void testDatabaseInsert()
 {
     bsoncxx::builder::stream::document builder;
     auto now = std::chrono::system_clock::now();
@@ -20,21 +20,33 @@ void testDatabaseInsert(DatabaseHandler &db)
             << "modified" << timeISO;
 
     bsoncxx::document::value document = builder.extract();
-    std::cout << (db.insertDocument("user", document) ? "uspešno!" : "neuspešno!") << std::endl;
+    std::cout << (DatabaseHandler::insertDocument("user", document) ? "uspešno!" : "neuspešno!") << std::endl;
+}
+
+void getAndPrintAllScrapperData()
+{
+    std::cout << "Pridobivam podatke od scrapperja" << std::endl;
+    bsoncxx::document::view filters{};
+    std::string collName = "mines";
+    std::vector<bsoncxx::document::value> scrapperVec = DatabaseHandler::fetchMultipleDocuments(collName, filters);
+    std::string temp = "";
+    for (auto &&i : scrapperVec)
+    {
+        // std::cout << bsoncxx::to_json(i) << std::endl;
+        temp += bsoncxx::to_json(i);
+    }
+
+    std::cout << temp;
 }
 
 int main()
 {
     try
     {
-
-        std::string dbUri = "<INSERT_URI>";
-        std::string dbName = "mines";
-        DatabaseHandler db(dbUri, dbName);
-        testDatabaseInsert(db);
+        // testDatabaseInsert();
+        // getAndPrintAllScrapperData();
         HttpServer server("127.0.0.1", "8080");
         server.runServer();
-
     }
     catch (const std::exception &ex)
     {
