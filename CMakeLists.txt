@@ -12,7 +12,10 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-find_package(Boost 1.74.0 QUIET COMPONENTS system beast asio)
+SET(CMAKE_FIND_PACKAGE_SORT_ORDER NATURAL)
+SET(CMAKE_FIND_PACKAGE_SORT_DIRECTION DEC)
+
+find_package(Boost 1.88 QUIET COMPONENTS system beast asio)
 
 if(NOT Boost_FOUND)
     message(STATUS "Required Boost components (system, beast, asio) not found via find_package.")
@@ -80,25 +83,24 @@ include_directories(includes)
 find_package(Catch2 3 QUIET)
 
 if(NOT Catch2_FOUND)
-    message(STATUS "System Catch2 v3 not found. Falling back to FetchContent.")
-    include(FetchContent)
-    FetchContent_Declare(
-        Catch2
-        GIT_REPOSITORY https://github.com/catchorg/Catch2.git
-        GIT_TAG        v3.8.1
-    )
-    FetchContent_MakeAvailable(Catch2)
-    message(STATUS "Catch2 (v3.6.0) obtained via FetchContent.")
+    message(FATAL_ERROR "System Catch2 v3 (or newer) not found. Please install Catch2 and ensure it can be found by CMake. Refer to the README.md for installation instructions for your platform.")
 else()
     message(STATUS "Found system Catch2: ${Catch2_VERSION}")
+    
+    if(NOT TARGET Catch2::Catch2WithMain AND NOT TARGET Catch2::Catch2)
+        message(FATAL_ERROR "Catch2 was found, but neither Catch2::Catch2WithMain nor Catch2::Catch2 CMake target is available. Your Catch2 installation might be incomplete or not correctly configured for CMake. Please check your Catch2 installation.")
+    elseif(NOT TARGET Catch2::Catch2WithMain)
+        message(WARNING "Catch2 target 'Catch2::Catch2WithMain' not found. Using 'Catch2::Catch2' instead. You will need to provide your own main() function in your test executable, or your tests might not link correctly if they expect Catch2 to provide main().")
+    else()
+        message(STATUS "Found Catch2 target: Catch2::Catch2WithMain.")
+    endif()
 endif()
 
-if(NOT TARGET Catch2::Catch2WithMain)
-    if(TARGET Catch2::Catch2) 
-        message(WARNING "Target Catch2::Catch2WithMain not found, but Catch2::Catch2 is available. You might need to provide your own main() in tests or adjust test/CMakeLists.txt if using system Catch2.")
-    else()
-        message(FATAL_ERROR "Catch2 was found or fetched, but the required CMake target (Catch2::Catch2WithMain or Catch2::Catch2) is not available. Check your Catch2 installation or FetchContent setup.")
-    endif()
+find_package(OpenSSL REQUIRED)
+if(OpenSSL_FOUND)
+    message(STATUS "Found OpenSSL: ${OpenSSL_VERSION} (Include: ${OpenSSL_INCLUDE_DIR}, Libs: ${OpenSSL_LIBRARIES})")
+else()
+    message(FATAL_ERROR "OpenSSL not found. Please install OpenSSL development libraries. See README.md for instructions.")
 endif()
 
 enable_testing()

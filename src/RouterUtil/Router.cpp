@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <utility>
+#include <regex>
 
 std::map<std::string, routeFunction> Router::routesPost{};
 std::map<std::string, routeFunction> Router::routesGet{};
@@ -50,7 +51,7 @@ std::string Router::convertUrlToRegexForm(std::string& originalUrl)
 */
 std::map<std::string, std::string> Router::getParametersFromUrl(std::string& URL, std::string& urlRegex)
 {
-	
+	return {};
 }
 
 /*
@@ -109,4 +110,46 @@ void Router::createPutRoute(std::string& URL, routeFunction function)
 void Router::createDeleteRoute(std::string& URL, routeFunction function)
 {
 	createRoute(DEL, URL, function);
+}
+
+
+/*
+	Funkcija glede na podan URL zažene ustrezno funkcijo
+*/
+static void routeSelector(http::verb method, std::string& URL, const request& req, response& res)
+{
+	std::map<std::string, routeFunction>* currentRoutingTable;
+
+	switch (method)
+	{
+	case boost::beast::http::verb::delete_:
+		currentRoutingTable = &Router::routesDelete;
+		break;
+	case boost::beast::http::verb::get:
+		currentRoutingTable = &Router::routesGet;
+		break;
+	case boost::beast::http::verb::post:
+		currentRoutingTable = &Router::routesPost;
+		break;
+	case boost::beast::http::verb::put:
+		currentRoutingTable = &Router::routesPut;
+		break;
+	default:
+		return;
+	}
+
+	for (const auto& pair : *currentRoutingTable) 
+	{
+		const std::string& urlPattern = pair.first;
+		const std::regex urlRegex(urlPattern);
+		const routeFunction& function = pair.second; 
+
+		if (regex_match(URL, urlRegex))
+		{
+			function(req, res);
+			return;
+		}
+	}
+
+	// TODO Naredi tu da gre na 404
 }
