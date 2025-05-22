@@ -8,7 +8,7 @@ InfrastructureModel::InfrastructureModel()
     this->model = "";
     this->IDNumber = 0;
     this->avgFuelConsumption = 0.00;
-    this->status = UNDEFINED;
+    this->status = InfrastructureStatus::UNDEFINED;
     this->lastMaintenance = std::chrono::milliseconds::zero();
     this->operatingHours = 0.00;
     this->kilometer = 0;
@@ -22,7 +22,7 @@ void InfrastructureModel::getFromBsonDocument(const bsoncxx::document::view &doc
         this->model = extractStringFromBSON(docView, "model");
         this->IDNumber = extractIntFromBSON(docView, "IDNumber");
         this->avgFuelConsumption = extractFloatFromBSON(docView, "avgFuelConsumption");
-        this->status = extractIntFromBSON(docView, "status");
+        this->status = static_cast<InfrastructureStatus>(extractIntFromBSON(docView, "status"));
         this->lastMaintenance = extractDateFromBSON(docView, "lastMaintenance");
         this->operatingHours = extractFloatFromBSON(docView, "operatingHours");
         this->kilometer = extractIntFromBSON(docView, "kilometer");
@@ -157,7 +157,7 @@ bsoncxx::document::value InfrastructureModel::convertToBsonDocument()
     builder.append(bsoncxx::builder::basic::kvp("model", this->model));
     builder.append(bsoncxx::builder::basic::kvp("IDNumber", this->IDNumber));
     builder.append(bsoncxx::builder::basic::kvp("avgFuelConsumption", this->avgFuelConsumption));
-    builder.append(bsoncxx::builder::basic::kvp("status", this->status));
+    builder.append(bsoncxx::builder::basic::kvp("status", static_cast<int>(this->status)));
     builder.append(bsoncxx::builder::basic::kvp("lastMaintenance", bsoncxx::types::b_date{lastMaintenance}));
     builder.append(bsoncxx::builder::basic::kvp("operatingHours", this->operatingHours));
     builder.append(bsoncxx::builder::basic::kvp("kilometer", this->kilometer));
@@ -166,7 +166,7 @@ bsoncxx::document::value InfrastructureModel::convertToBsonDocument()
 
 bool InfrastructureModel::validateInfrastructure() const
 {
-    if (status > UNDEFINED || status < ACTIVE)
+    if (status > InfrastructureStatus::UNDEFINED || status < InfrastructureStatus::ACTIVE)
     {
         return false;
     }

@@ -14,9 +14,15 @@ Razred  skrbi za delo z infrastrukturo rudnika/stroji in njihovimi atributi
 #include <bsoncxx/document/view.hpp>
 #include <bsoncxx/document/value.hpp>
 
+#include <bsoncxx/document/view.hpp>
+#include <bsoncxx/document/view.hpp>
+#include <bsoncxx/builder/basic/document.hpp>
+#include <bsoncxx/exception/exception.hpp>
+#include <bsoncxx/document/view.hpp>
+
 using timeStamp = std::chrono::milliseconds;
 
-enum InfrastructureStatus
+enum class InfrastructureStatus
 {
     ACTIVE,
     IDLE,
@@ -39,6 +45,7 @@ private:
     float operatingHours;
     int kilometer;
 
+public:
     InfrastructureModel(std::string brand, std::string model, int IDNumber, float avgFuelConsumption, InfrastructureStatus status, timeStamp lastMaintenance, float operatingHours, int kilometer);
     InfrastructureModel();
 

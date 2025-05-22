@@ -7,7 +7,7 @@ MineralModel::MineralModel()
     this->name = "";
     this->min = 0.00;
     this->max = 0.00;
-    this->grade = UNDEFINED;
+    this->grade = MineralGrade::UNDEFINED;
 }
 void MineralModel::getFromBsonDocument(const bsoncxx::document::view &docView)
 {
@@ -16,7 +16,7 @@ void MineralModel::getFromBsonDocument(const bsoncxx::document::view &docView)
         this->name = extractStringFromBSON(docView, "name");
         this->min = extractFloatFromBSON(docView, "min");
         this->max = extractFloatFromBSON(docView, "max");
-        this->grade = extractIntFromBSON(docView, "grade");
+        this->grade = static_cast<MineralGrade>(extractIntFromBSON(docView, "grade"));
     }
     catch (const bsoncxx::exception &exception)
     {
@@ -120,12 +120,12 @@ bsoncxx::document::value MineralModel::convertToBsonDocument()
     builder.append(bsoncxx::builder::basic::kvp("name", this->name));
     builder.append(bsoncxx::builder::basic::kvp("min", this->min));
     builder.append(bsoncxx::builder::basic::kvp("max", this->max));
-    builder.append(bsoncxx::builder::basic::kvp("grade", this->grade));
+    builder.append(bsoncxx::builder::basic::kvp("grade", static_cast<int>(this->grade)));
     return builder.extract();
 }
 
 bool MineralModel::validateMinerals() const{
-    if(grade > UNDEFINED || grade < LOW){
+    if(grade > MineralGrade::UNDEFINED || grade < MineralGrade::LOW){
         return false;
     }
     

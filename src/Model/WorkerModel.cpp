@@ -9,7 +9,7 @@ WorkerModel::WorkerModel()
     this->lastName = "";
     this->birthDate = std::chrono::milliseconds::zero();
     this->IDNumber = 0;
-    this->type = UNDEFINED;
+    this->type = WorkerType::UNDEFINED;
     this->salary = 0.00;
 }
 
@@ -21,7 +21,7 @@ void WorkerModel::getFromBsonDocument(const bsoncxx::document::view &docView)
         this->lastName = extractStringFromBSON(docView, "lastName");
         this->birthDate = extractDateFromBSON(docView, "birthDate");
         this->IDNumber = extractIntFromBSON(docView, "IDNumber");
-        this->type = extractIntFromBSON(docView, "type");
+        this->type = static_cast<WorkerType>(extractIntFromBSON(docView, "type"));
         this->salary = extractFloatFromBSON(docView, "salary");
     }
     catch (const bsoncxx::exception &exception)
@@ -153,15 +153,15 @@ bsoncxx::document::value WorkerModel::convertToBsonDocument()
     builder.append(bsoncxx::builder::basic::kvp("lastName", this->lastName));
     builder.append(bsoncxx::builder::basic::kvp("IDNumber", this->IDNumber));
     builder.append(bsoncxx::builder::basic::kvp("birthDate", bsoncxx::types::b_date{birthDate}));
-    builder.append(bsoncxx::builder::basic::kvp("type", this->type));
+    builder.append(bsoncxx::builder::basic::kvp("type", static_cast<int>(this->type)));
     builder.append(bsoncxx::builder::basic::kvp("salary", this->salary));
 
     return builder.extract();
 }
 
-bool WorkerModelvalidateWorkers() const
+bool WorkerModel::validateWorkers() const
 {
-    if (type > UNDEFINED || type < MINER)
+    if (type > WorkerType::UNDEFINED || type < WorkerType::MINER)
     {
         return false;
     }

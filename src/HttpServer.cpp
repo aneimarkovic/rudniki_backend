@@ -107,7 +107,7 @@ void HttpServer::getRequest(tcp::socket socket)
     res.set(http::field::content_type, "application/json");
     res.set(http::field::access_control_allow_origin, "*");
     res.prepare_payload();
-    http::write(socket, res)
+    http::write(socket, res);
 }
 
 /*Metoda, ki pošlje odgovor nazaj na clientside*/

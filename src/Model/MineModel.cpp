@@ -1,7 +1,7 @@
 //  Created by Anei Markovič 22.5.2025
 #include "Model/MineModel.hpp"
 
-MineModel::MineModel(std::string name, bsoncxx::oid ownerId, mineStatus status, mineType type, std::vector<MineralModel> minerals, std::vector<InfrastructureModel> infrastructure, std::vector<WorkerModel> workers, timeStamp createdAt, timeStamp modifiedAt)
+MineModel::MineModel(std::string name, bsoncxx::oid ownerId, MineStatus status, MineType type, std::vector<MineralModel> minerals, std::vector<InfrastructureModel> infrastructure, std::vector<WorkerModel> workers, timeStamp createdAt, timeStamp modifiedAt)
     : name(name),
       ownerId(ownerId),
       status(status),
@@ -11,7 +11,7 @@ MineModel::MineModel(std::string name, bsoncxx::oid ownerId, mineStatus status, 
       workers(workers),
       ModelTemplate(createdAt, modifiedAt)
 {
-    this->validateMineData();
+    // validateMineData();
 }
 /*
     Funkcija zgradi MineModel objekt iz pridobljenega BSON dokumenta
@@ -23,8 +23,8 @@ void MineModel::getFromBsonDocument(const bsoncxx::document::view &docView)
         this->id = docView["_id"].get_oid().value;
         this->name = extractStringFromBSON(docView, "name");
         this->ownerId = docView["ownerId"].get_oid().value;
-        this->status = extractIntFromBSON(docView, "status");
-        this->type = extractIntFromBSON(docView, "type");
+        this->status = static_cast<MineStatus>(extractIntFromBSON(docView, "status"));
+        this->type = static_cast<MineType>(extractIntFromBSON(docView, "type"));
 
         bsoncxx::array::view tempMinerals = docView["minerals"].get_array().value;
         for (const auto &item : tempMinerals)
@@ -37,7 +37,7 @@ void MineModel::getFromBsonDocument(const bsoncxx::document::view &docView)
         bsoncxx::array::view tempInfrastructure = docView["infrastructure"].get_array().value;
         for (const auto &item : tempInfrastructure)
         {
-            infrastructureModel temp;
+            InfrastructureModel temp;
             temp.getFromBsonDocument(item.get_document().view());
             this->infrastructure.push_back(temp);
         }
@@ -62,22 +62,26 @@ bsoncxx::document::value MineModel::convertToBsonDocument()
     builder.append(bsoncxx::builder::basic::kvp("_id", id));
     builder.append(bsoncxx::builder::basic::kvp("name", this->name));
     builder.append(bsoncxx::builder::basic::kvp("ownerId", this->ownerId));
-    builder.append(bsoncxx::builder::basic::kvp("status", this->status));
-    builder.append(bsoncxx::builder::basic::kvp("type", this->type));
+    builder.append(bsoncxx::builder::basic::kvp("status", static_cast<int>(this->status)));
+    builder.append(bsoncxx::builder::basic::kvp("type", static_cast<int>(this->type)));
     builder.append(bsoncxx::builder::basic::kvp("created", bsoncxx::types::b_date{created}));
     builder.append(bsoncxx::builder::basic::kvp("modified", bsoncxx::types::b_date{modified}));
-    bsoncxx::builder::basic::array mineralsArr{};
-    for (const auto &item : this->minerals)
+
+    auto mineralsArr = bsoncxx::builder::basic::array{};
+    // bsoncxx::builder::basic::array mineralsArr;
+    for (auto &item : this->minerals)
     {
         mineralsArr.append(item.convertToBsonDocument().view());
     }
-    bsoncxx::builder::basic::array infrastructureArr{};
-    for (const auto &item : this->infrastructure)
+    auto infrastructureArr = bsoncxx::builder::basic::array{};
+    // bsoncxx::builder::basic::array infrastructureArr;
+    for (auto &item : this->infrastructure)
     {
         infrastructureArr.append(item.convertToBsonDocument().view());
     }
-    bsoncxx::builder::basic::array workersArr{};
-    for (const auto &item : this->workers)
+    auto workersArr = bsoncxx::builder::basic::array{};
+    // bsoncxx::builder::basic::array workersArr;
+    for (auto &item : this->workers)
     {
         workersArr.append(item.convertToBsonDocument().view());
     }
@@ -86,12 +90,12 @@ bsoncxx::document::value MineModel::convertToBsonDocument()
 
 bool MineModel::validateMineData() const
 {
-    if (this->type > DEEPSEA || this->type < SURFACE)
+    if (this->type > MineType::DEEPSEA || this->type < MineType::SURFACE)
     {
         return false;
     }
 
-    if (this->status > BUILDING || this->status < ACTIVE)
+    if (this->status > MineStatus::BUILDING || this->status < MineStatus::ACTIVE)
     {
         return false;
     }
@@ -106,15 +110,15 @@ bool MineModel::validateMineData() const
 
     for (InfrastructureModel item : this->infrastructure)
     {
-        if (!validateInfrastructure())
+        if (!item.validateInfrastructure())
         {
             return false;
         }
     }
 
-    for (WorkersModel item : this->workers)
+    for (WorkerModel item : this->workers)
     {
-        if (!validateWorkers())
+        if (!item.validateWorkers())
         {
             return false;
         }

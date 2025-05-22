@@ -13,9 +13,11 @@ Razred  skrbi za delo z delavci in njihovimi atributi
 #include <bsoncxx/types.hpp>
 #include <bsoncxx/document/view.hpp>
 #include <bsoncxx/document/value.hpp>
+#include <bsoncxx/exception/exception.hpp>
+#include <bsoncxx/builder/basic/document.hpp>
 
 using timeStamp = std::chrono::milliseconds;
-enum WorkerType
+enum class WorkerType
 {
     MINER,
     MACHINEOPERATOR,

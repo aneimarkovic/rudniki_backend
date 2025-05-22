@@ -13,8 +13,10 @@ Razred skrbi za delo z Minerali in njihovimi atributi
 #include <bsoncxx/types.hpp>
 #include <bsoncxx/document/view.hpp>
 #include <bsoncxx/document/value.hpp>
+#include <bsoncxx/exception/exception.hpp>
+#include <bsoncxx/builder/basic/document.hpp>
 
-enum MineralGrade
+enum class MineralGrade
 {
     LOW,
     MEDIUM,

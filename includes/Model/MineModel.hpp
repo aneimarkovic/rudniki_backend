@@ -13,13 +13,19 @@ v zvezi z delom z podatki o rudniku
 #include <regex>
 
 #include <bsoncxx/types.hpp>
+#include <bsoncxx/document/view.hpp>
+#include <bsoncxx/document/view.hpp>
+#include <bsoncxx/builder/basic/document.hpp>
+#include <bsoncxx/exception/exception.hpp>
+#include <bsoncxx/document/view.hpp>
+#include <bsoncxx/builder/basic/array.hpp>
 
 #include "Model/ModelTemplate.hpp"
 #include "Model/MineralModel.hpp"
 #include "Model/InfrastructureModel.hpp"
 #include "Model/WorkerModel.hpp"
 
-enum mineStatus
+enum class MineStatus
 {
     ACTIVE,
     IDLE,
@@ -27,7 +33,7 @@ enum mineStatus
     BUILDING
 };
 
-enum mineType{
+enum class MineType{
     SURFACE,
     UNDERGROUND,
     PLACER,
@@ -40,16 +46,16 @@ class MineModel : public ModelTemplate
 private:
     std::string name;
     bsoncxx::oid ownerId;
-    mineStatus status;
-    mineType type;
+    MineStatus status;
+    MineType type;
     std::vector<MineralModel> minerals;
     std::vector<InfrastructureModel> infrastructure;
     std::vector<WorkerModel> workers;
 public:
-    MineModel(std::string name, bsoncxx::oid ownerId, mineStatus status, mineType type, std::vector<MineralModel> minerals, std::vector<InfrastructureModel> infrastructure, std::vector<WorkerModel> workers, timeStamp createdAt, timeStamp modifiedAt);
+    MineModel(std::string name, bsoncxx::oid ownerId, MineStatus status, MineType type, std::vector<MineralModel> minerals, std::vector<InfrastructureModel> infrastructure, std::vector<WorkerModel> workers, timeStamp createdAt, timeStamp modifiedAt);
     void getFromBsonDocument(const bsoncxx::document::view& docView) override;
     bsoncxx::document::value convertToBsonDocument() override;
 
     bool validateMineData() const;
-}
+};
 #endif

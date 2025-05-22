@@ -6,6 +6,9 @@
 #include "HttpServer.hpp"
 #include "DatabaseHandler.hpp"
 
+#include "RouterUtil/Router.hpp"
+#include "Controller/MineController.hpp"
+
 void testDatabaseInsert()
 {
     bsoncxx::builder::stream::document builder;
@@ -45,6 +48,9 @@ int main()
     {
         // testDatabaseInsert();
         // getAndPrintAllScrapperData();
+        std::string url = "/mine/save";
+        Router::createPostRoute(url, MineController::saveMine);
+
         HttpServer server("127.0.0.1", "8080");
         server.runServer();
     }
