@@ -1,7 +1,7 @@
 // Created by Anei Markovič 22.5.2025
 #include "Model/InfrastructureModel.hpp"
 
-InfrastructureModel::InfrastructureModel(std::string brand, std::string model, int IDNumber, float avgFuelConsumption, InfrastructureStatus status, timeStamp lastMaintenance, float operatingHours, int kilometer) : brand(brand), model(model), IDNumber(IDNumber), avgFuelConsumption(avgFuelConsumption), status(status), lastMaintenance(lastMaintenance), operatingHours(operatingHours), kilometer(kilometer) {}
+InfrastructureModel::InfrastructureModel(std::string brand, std::string model, int IDNumber, double avgFuelConsumption, InfrastructureStatus status, timeStamp lastMaintenance, double operatingHours, int kilometer) : brand(brand), model(model), IDNumber(IDNumber), avgFuelConsumption(avgFuelConsumption), status(status), lastMaintenance(lastMaintenance), operatingHours(operatingHours), kilometer(kilometer) {}
 InfrastructureModel::InfrastructureModel()
 {
     this->brand = "";
@@ -21,10 +21,10 @@ void InfrastructureModel::getFromBsonDocument(const bsoncxx::document::view &doc
         this->brand = extractStringFromBSON(docView, "brand");
         this->model = extractStringFromBSON(docView, "model");
         this->IDNumber = extractIntFromBSON(docView, "IDNumber");
-        this->avgFuelConsumption = extractFloatFromBSON(docView, "avgFuelConsumption");
+        this->avgFuelConsumption = extractDoubleFromBSON(docView, "avgFuelConsumption");
         this->status = static_cast<InfrastructureStatus>(extractIntFromBSON(docView, "status"));
         this->lastMaintenance = extractDateFromBSON(docView, "lastMaintenance");
-        this->operatingHours = extractFloatFromBSON(docView, "operatingHours");
+        this->operatingHours = extractDoubleFromBSON(docView, "operatingHours");
         this->kilometer = extractIntFromBSON(docView, "kilometer");
     }
     catch (const bsoncxx::exception &exception)
@@ -64,7 +64,7 @@ std::string InfrastructureModel::extractStringFromBSON(const bsoncxx::document::
     return "";
 }
 
-float InfrastructureModel::extractFloatFromBSON(const bsoncxx::document::view &docView, const char *key)
+double InfrastructureModel::extractDoubleFromBSON(const bsoncxx::document::view &docView, const char *key)
 {
     try
     {
@@ -74,8 +74,7 @@ float InfrastructureModel::extractFloatFromBSON(const bsoncxx::document::view &d
         {
             if (element.type() == bsoncxx::type::k_double)
             {
-                double tempDouble = element.get_double().value;
-                return static_cast<float>(tempDouble);
+                return element.get_double().value;
             }
             else
             {
@@ -132,6 +131,10 @@ timeStamp InfrastructureModel::extractDateFromBSON(const bsoncxx::document::view
             if (element.type() == bsoncxx::type::k_date)
             {
                 return element.get_date().value;
+            }
+            else if (element.type() == bsoncxx::type::k_int64)
+            {
+                return std::chrono::milliseconds(element.get_int64().value);
             }
             else
             {

@@ -2,7 +2,7 @@
 
 #include "Model/WorkerModel.hpp"
 
-WorkerModel::WorkerModel(std::string firstName, std::string lastName, timeStamp birthDate, int IDNumber, WorkerType type, float salary) : firstName(firstName), lastName(lastName), birthDate(birthDate), IDNumber(IDNumber), type(type), salary(salary) {}
+WorkerModel::WorkerModel(std::string firstName, std::string lastName, timeStamp birthDate, int IDNumber, WorkerType type, double salary) : firstName(firstName), lastName(lastName), birthDate(birthDate), IDNumber(IDNumber), type(type), salary(salary) {}
 WorkerModel::WorkerModel()
 {
     this->firstName = "";
@@ -22,7 +22,7 @@ void WorkerModel::getFromBsonDocument(const bsoncxx::document::view &docView)
         this->birthDate = extractDateFromBSON(docView, "birthDate");
         this->IDNumber = extractIntFromBSON(docView, "IDNumber");
         this->type = static_cast<WorkerType>(extractIntFromBSON(docView, "type"));
-        this->salary = extractFloatFromBSON(docView, "salary");
+        this->salary = extractDoubleFromBSON(docView, "salary");
     }
     catch (const bsoncxx::exception &exception)
     {
@@ -61,7 +61,7 @@ std::string WorkerModel::extractStringFromBSON(const bsoncxx::document::view &do
     return "";
 }
 
-float WorkerModel::extractFloatFromBSON(const bsoncxx::document::view &docView, const char *key)
+double WorkerModel::extractDoubleFromBSON(const bsoncxx::document::view &docView, const char *key)
 {
     try
     {
@@ -71,8 +71,7 @@ float WorkerModel::extractFloatFromBSON(const bsoncxx::document::view &docView, 
         {
             if (element.type() == bsoncxx::type::k_double)
             {
-                double tempDouble = element.get_double().value;
-                return static_cast<float>(tempDouble);
+                return element.get_double().value;
             }
             else
             {
@@ -129,6 +128,10 @@ timeStamp WorkerModel::extractDateFromBSON(const bsoncxx::document::view &docVie
             if (element.type() == bsoncxx::type::k_date)
             {
                 return element.get_date().value;
+            }
+            else if (element.type() == bsoncxx::type::k_int64)
+            {
+                return std::chrono::milliseconds(element.get_int64().value);
             }
             else
             {

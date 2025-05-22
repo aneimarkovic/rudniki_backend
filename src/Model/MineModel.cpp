@@ -13,6 +13,18 @@ MineModel::MineModel(std::string name, bsoncxx::oid ownerId, MineStatus status, 
 {
     // validateMineData();
 }
+
+MineModel::MineModel()
+    : ModelTemplate(GET_NOW_IN_MILLISECONDS(), GET_NOW_IN_MILLISECONDS())
+{
+    this->name = "";
+    this->ownerId = bsoncxx::oid();
+    this->status = MineStatus::CLOSED;
+    this->type = MineType::SURFACE;
+    this->minerals = {};
+    this->infrastructure = {};
+    this->workers = {};
+}
 /*
     Funkcija zgradi MineModel objekt iz pridobljenega BSON dokumenta
 */
@@ -20,9 +32,42 @@ void MineModel::getFromBsonDocument(const bsoncxx::document::view &docView)
 {
     try
     {
-        this->id = docView["_id"].get_oid().value;
+        auto checkID = docView["_id"];
+        if (checkID && checkID.type() == bsoncxx::type::k_oid)
+        {
+            this->id = docView["_id"].get_oid().value;
+        }
+        else
+        {
+            this->id = bsoncxx::oid();
+        }
         this->name = extractStringFromBSON(docView, "name");
-        this->ownerId = docView["ownerId"].get_oid().value;
+
+        // this->ownerId = docView["ownerId"].get_oid().value;
+
+        auto ownerIdElement = docView["ownerId"];
+        if (ownerIdElement && ownerIdElement.type() == bsoncxx::type::k_oid)
+        {
+            this->ownerId = ownerIdElement.get_oid().value;
+        }
+        else if (ownerIdElement && ownerIdElement.type() == bsoncxx::type::k_string)
+        {
+            try
+            {
+                auto sv = ownerIdElement.get_string().value;
+                std::string str_val(sv.data(), sv.size());
+                this->ownerId = bsoncxx::oid(str_val);
+            }
+            catch (...)
+            {
+                this->ownerId = bsoncxx::oid();
+            }
+        }
+        else
+        {
+            this->ownerId = bsoncxx::oid();
+        }
+
         this->status = static_cast<MineStatus>(extractIntFromBSON(docView, "status"));
         this->type = static_cast<MineType>(extractIntFromBSON(docView, "type"));
 
@@ -68,23 +113,23 @@ bsoncxx::document::value MineModel::convertToBsonDocument()
     builder.append(bsoncxx::builder::basic::kvp("modified", bsoncxx::types::b_date{modified}));
 
     auto mineralsArr = bsoncxx::builder::basic::array{};
-    // bsoncxx::builder::basic::array mineralsArr;
     for (auto &item : this->minerals)
     {
         mineralsArr.append(item.convertToBsonDocument().view());
     }
+    builder.append(bsoncxx::builder::basic::kvp("minerals", mineralsArr));
     auto infrastructureArr = bsoncxx::builder::basic::array{};
-    // bsoncxx::builder::basic::array infrastructureArr;
     for (auto &item : this->infrastructure)
     {
         infrastructureArr.append(item.convertToBsonDocument().view());
     }
+    builder.append(bsoncxx::builder::basic::kvp("infrastructure", infrastructureArr));
     auto workersArr = bsoncxx::builder::basic::array{};
-    // bsoncxx::builder::basic::array workersArr;
     for (auto &item : this->workers)
     {
         workersArr.append(item.convertToBsonDocument().view());
     }
+    builder.append(bsoncxx::builder::basic::kvp("workers", workersArr));
     return builder.extract();
 }
 
@@ -124,4 +169,8 @@ bool MineModel::validateMineData() const
         }
     }
     return true;
+}
+
+std::string MineModel::toString() const
+{
 }

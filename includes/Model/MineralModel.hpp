@@ -28,16 +28,16 @@ class MineralModel
 {
 private:
     std::string name;
-    float min;
-    float max;
+    double min;
+    double max;
     MineralGrade grade;
 public:
-    MineralModel(std::string name, float min, float max, MineralGrade grade);
+    MineralModel(std::string name, double min, double max, MineralGrade grade);
     MineralModel();
     
     void getFromBsonDocument(const bsoncxx::document::view& docView);
     std::string extractStringFromBSON(const bsoncxx::document::view& docView, const char* key);
-    float extractFloatFromBSON(const bsoncxx::document::view &docView, const char *key);
+    double extractDoubleFromBSON(const bsoncxx::document::view &docView, const char *key);
     int extractIntFromBSON(const bsoncxx::document::view &docView, const char *key);
     bsoncxx::document::value convertToBsonDocument();
 

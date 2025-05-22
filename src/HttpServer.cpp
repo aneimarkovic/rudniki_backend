@@ -102,7 +102,7 @@ void HttpServer::getRequest(tcp::socket socket)
     // ROUTER CALL
     Router newRoute;
     newRoute.handleRequest(req, res);
-
+    
     res.set(http::field::server, "Rudnik http server");
     res.set(http::field::content_type, "application/json");
     res.set(http::field::access_control_allow_origin, "*");

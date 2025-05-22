@@ -7,7 +7,8 @@ mongocxx::options::client DatabaseHandler::clientOptions{};
 mongocxx::client DatabaseHandler::connection = DatabaseHandler::createClientWithApi(DatabaseHandler::uri, DatabaseHandler::clientOptions);
 mongocxx::database DatabaseHandler::db = DatabaseHandler::connection["ImeRudnikiDatabase"];
 
-mongocxx::client DatabaseHandler::createClientWithApi(const mongocxx::uri &uri, mongocxx::options::client &options) {
+mongocxx::client DatabaseHandler::createClientWithApi(const mongocxx::uri &uri, mongocxx::options::client &options)
+{
     mongocxx::options::server_api api_opts{mongocxx::options::server_api::version::k_version_1};
     options.server_api_opts(api_opts);
     return mongocxx::client{uri, options};
@@ -42,7 +43,7 @@ bool DatabaseHandler::insertDocument(const std::string &collectionName, const bs
 /*
     Funkcija vzame [collectionName] in [filters] in glede na to vrne en objekt če ga najde
 */
-std::optional<bsoncxx::document::value> DatabaseHandler::fetchSingleDocument(const std::string& collectionName, bsoncxx::document::view filters)
+std::optional<bsoncxx::document::value> DatabaseHandler::fetchSingleDocument(const std::string &collectionName, bsoncxx::document::view filters)
 {
     try
     {
@@ -50,20 +51,23 @@ std::optional<bsoncxx::document::value> DatabaseHandler::fetchSingleDocument(con
 
         bsoncxx::stdx::optional<bsoncxx::document::value> driver_find_one_result = collection.find_one(filters);
 
-        std::optional<bsoncxx::document::value> maybe_result; 
+        std::optional<bsoncxx::document::value> maybe_result;
 
-        if (driver_find_one_result) {
+        if (driver_find_one_result)
+        {
             maybe_result = std::move(*driver_find_one_result);
         }
 
-        if (maybe_result) {
+        if (maybe_result)
+        {
             return maybe_result;
         }
-        else {
-            return {}; 
+        else
+        {
+            return {};
         }
     }
-    catch (const std::exception& e)
+    catch (const std::exception &e)
     {
         std::cerr << "Napaka pri branju dokumenta: " << e.what() << std::endl;
     }
@@ -72,7 +76,7 @@ std::optional<bsoncxx::document::value> DatabaseHandler::fetchSingleDocument(con
 /*
     Funkcija vzame [collectionName] in [filters] in glede na to vrne več objekt če jih najde
 */
-std::vector<bsoncxx::document::value> DatabaseHandler::fetchMultipleDocuments( const std::string& collectionName, bsoncxx::document::view filters)
+std::vector<bsoncxx::document::value> DatabaseHandler::fetchMultipleDocuments(const std::string &collectionName, bsoncxx::document::view filters)
 {
     std::vector<bsoncxx::document::value> documents;
     try
@@ -86,11 +90,27 @@ std::vector<bsoncxx::document::value> DatabaseHandler::fetchMultipleDocuments( c
             documents.emplace_back(doc_view);
         }
 
-        return documents; 
+        return documents;
     }
-    catch (const std::exception& e) 
+    catch (const std::exception &e)
     {
         std::cerr << "Splošna napaka pri branju več dokumentov iz zbirke '" << collectionName << "': " << e.what() << std::endl;
-        return {}; 
+        return {};
+    }
+}
+
+bool DatabaseHandler::deleteDocument(const std::string &collectionName, bsoncxx::document::view filters)
+{
+    try
+    {
+        mongocxx::collection collection = DatabaseHandler::db[collectionName];
+        auto result = collection.delete_one(filters);
+        std::cout << "Izbrisanih dokumentov: " << result->deleted_count() << std::endl;
+        return true;
+    }
+    catch (const std::exception &e)
+    {
+        std::cerr << "Napaka pri brisanju dokumenta: " << e.what() << std::endl;
+        return false;
     }
 }

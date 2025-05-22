@@ -46,15 +46,15 @@ private:
     timeStamp birthDate;
     int IDNumber;
     WorkerType type;
-    float salary;
+    double salary;
 
 public:
-    WorkerModel(std::string firstName, std::string lastName, timeStamp birthDate, int IDNumber, WorkerType type, float salary);
+    WorkerModel(std::string firstName, std::string lastName, timeStamp birthDate, int IDNumber, WorkerType type, double salary);
     WorkerModel();
 
     void getFromBsonDocument(const bsoncxx::document::view &docView);
     std::string extractStringFromBSON(const bsoncxx::document::view &docView, const char *key);
-    float extractFloatFromBSON(const bsoncxx::document::view &docView, const char *key);
+    double extractDoubleFromBSON(const bsoncxx::document::view &docView, const char *key);
     int extractIntFromBSON(const bsoncxx::document::view &docView, const char *key);
     timeStamp extractDateFromBSON(const bsoncxx::document::view &docView, const char *key);
     bsoncxx::document::value convertToBsonDocument();

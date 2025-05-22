@@ -6,11 +6,16 @@
 #define MINECONTROLLER_H
 
 #include "RouterUtil/Router.hpp"
+#include <bsoncxx/json.hpp>
+#include <bsoncxx/builder/basic/document.hpp>
+#include <bsoncxx/builder/stream/document.hpp>
 
 class MineController
 {
 public:
-    static void saveMine(const request &request, response &response);
+    static void saveMine(const request &request, response &response, Router* r);
+    static void getMine(const request &request, response &response, Router* r);
+    static void deleteMine(const request &request, response &response, Router* r);
 };
 
 #endif

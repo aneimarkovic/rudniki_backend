@@ -5,15 +5,15 @@
 #include <regex>
 
 #include <boost/beast/http.hpp>
-
+class Router;
 // Pripravi vse nove tipe, ki jih rabimo
 namespace http = boost::beast::http;
 using request = http::request<http::string_body>;
 using response = http::response<http::string_body>;
-using routeFunction = std::function<void(const request&, response&)>;
+using routeFunction = std::function<void(const request&, response&, Router* r)>;
 
 /*
-	Created by Žan Misja 18/05/2025
+	Created by ï¿½an Misja 18/05/2025
 
 	Razred Router je odgovoren za preslikavo dohodnih HTTP zahtevkov
 	(na podlagi URL poti in HTTP metode) na ustrezne obdelovalne funkcije.
@@ -46,10 +46,10 @@ public:
 public:
 
 	// Funkcije za dodajanje novih poti
-	static void createGetRoute(std::string& URL, routeFunction function) ;
-	static void createPostRoute(std::string& URL, routeFunction function);
-	static void createPutRoute(std::string& URL, routeFunction function);
-	static void createDeleteRoute(std::string& URL, routeFunction function);
+	static void createGetRoute(std::string URL, routeFunction function) ;
+	static void createPostRoute(std::string URL, routeFunction function);
+	static void createPutRoute(std::string URL, routeFunction function);
+	static void createDeleteRoute(std::string URL, routeFunction function);
 
 	void handleRequest(const request& request, response& response);
 };

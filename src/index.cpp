@@ -48,8 +48,9 @@ int main()
     {
         // testDatabaseInsert();
         // getAndPrintAllScrapperData();
-        std::string url = "/mine/save";
-        Router::createPostRoute(url, MineController::saveMine);
+        Router::createPostRoute("/mine/save", MineController::saveMine);
+        Router::createGetRoute("/mine/get/:id", MineController::getMine);
+        Router::createDeleteRoute("/mine/delete/:id", MineController::deleteMine);
 
         HttpServer server("127.0.0.1", "8080");
         server.runServer();

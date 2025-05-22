@@ -39,19 +39,19 @@ private:
     std::string brand;
     std::string model;
     int IDNumber;
-    float avgFuelConsumption;
+    double avgFuelConsumption;
     InfrastructureStatus status;
     timeStamp lastMaintenance;
-    float operatingHours;
+    double operatingHours;
     int kilometer;
 
 public:
-    InfrastructureModel(std::string brand, std::string model, int IDNumber, float avgFuelConsumption, InfrastructureStatus status, timeStamp lastMaintenance, float operatingHours, int kilometer);
+    InfrastructureModel(std::string brand, std::string model, int IDNumber, double avgFuelConsumption, InfrastructureStatus status, timeStamp lastMaintenance, double operatingHours, int kilometer);
     InfrastructureModel();
 
     void getFromBsonDocument(const bsoncxx::document::view &docView);
     std::string extractStringFromBSON(const bsoncxx::document::view &docView, const char *key);
-    float extractFloatFromBSON(const bsoncxx::document::view &docView, const char *key);
+    double extractDoubleFromBSON(const bsoncxx::document::view &docView, const char *key);
     int extractIntFromBSON(const bsoncxx::document::view &docView, const char *key);
     timeStamp extractDateFromBSON(const bsoncxx::document::view &docView, const char *key);
     bsoncxx::document::value convertToBsonDocument();

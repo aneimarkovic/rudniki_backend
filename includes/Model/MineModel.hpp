@@ -44,6 +44,7 @@ enum class MineType{
 class MineModel : public ModelTemplate
 {
 private:
+    bsoncxx::oid id;
     std::string name;
     bsoncxx::oid ownerId;
     MineStatus status;
@@ -53,9 +54,11 @@ private:
     std::vector<WorkerModel> workers;
 public:
     MineModel(std::string name, bsoncxx::oid ownerId, MineStatus status, MineType type, std::vector<MineralModel> minerals, std::vector<InfrastructureModel> infrastructure, std::vector<WorkerModel> workers, timeStamp createdAt, timeStamp modifiedAt);
+    MineModel();
     void getFromBsonDocument(const bsoncxx::document::view& docView) override;
     bsoncxx::document::value convertToBsonDocument() override;
 
     bool validateMineData() const;
+    std::string toString() const;
 };
 #endif

@@ -1,7 +1,7 @@
 //  Created by Anei Markovič 22.5.2025
 #include "Model/MineralModel.hpp"
 
-MineralModel::MineralModel(std::string name, float min, float max, MineralGrade grade) : name(name), min(min), max(max), grade(grade) {}
+MineralModel::MineralModel(std::string name, double min, double max, MineralGrade grade) : name(name), min(min), max(max), grade(grade) {}
 MineralModel::MineralModel()
 {
     this->name = "";
@@ -14,8 +14,8 @@ void MineralModel::getFromBsonDocument(const bsoncxx::document::view &docView)
     try
     {
         this->name = extractStringFromBSON(docView, "name");
-        this->min = extractFloatFromBSON(docView, "min");
-        this->max = extractFloatFromBSON(docView, "max");
+        this->min = extractDoubleFromBSON(docView, "min");
+        this->max = extractDoubleFromBSON(docView, "max");
         this->grade = static_cast<MineralGrade>(extractIntFromBSON(docView, "grade"));
     }
     catch (const bsoncxx::exception &exception)
@@ -55,7 +55,7 @@ std::string MineralModel::extractStringFromBSON(const bsoncxx::document::view &d
     return "";
 }
 
-float MineralModel::extractFloatFromBSON(const bsoncxx::document::view &docView, const char *key)
+double MineralModel::extractDoubleFromBSON(const bsoncxx::document::view &docView, const char *key)
 {
     try
     {
@@ -65,8 +65,7 @@ float MineralModel::extractFloatFromBSON(const bsoncxx::document::view &docView,
         {
             if (element.type() == bsoncxx::type::k_double)
             {
-                double tempDouble = element.get_double().value;
-                return static_cast<float>(tempDouble);
+                return element.get_double().value;
             }
             else
             {
@@ -124,10 +123,12 @@ bsoncxx::document::value MineralModel::convertToBsonDocument()
     return builder.extract();
 }
 
-bool MineralModel::validateMinerals() const{
-    if(grade > MineralGrade::UNDEFINED || grade < MineralGrade::LOW){
+bool MineralModel::validateMinerals() const
+{
+    if (grade > MineralGrade::UNDEFINED || grade < MineralGrade::LOW)
+    {
         return false;
     }
-    
+
     return true;
 }

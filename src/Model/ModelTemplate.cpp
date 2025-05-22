@@ -66,6 +66,10 @@ timeStamp ModelTemplate::extractDateFromBSON(const bsoncxx::document::view &docV
             {
                 return element.get_date().value;
             }
+            else if (element.type() == bsoncxx::type::k_int64)
+            {
+                return std::chrono::milliseconds(element.get_int64().value);
+            }
             else
             {
                 std::cerr << "Warning: Field '" << key << "' exists but is not a date type (actual type: "

@@ -92,7 +92,7 @@ void Router::createRoute(requestType type, std::string& URL, routeFunction funct
 /*
 	Naredi route preko [createRoute] za get
 */
-void Router::createGetRoute(std::string& URL, routeFunction function)
+void Router::createGetRoute(std::string URL, routeFunction function)
 {
 	createRoute(GET, URL, function);
 }
@@ -100,7 +100,7 @@ void Router::createGetRoute(std::string& URL, routeFunction function)
 /*
 	Naredi route preko [createRoute] za post
 */
-void Router::createPostRoute(std::string& URL, routeFunction function)
+void Router::createPostRoute(std::string URL, routeFunction function)
 {
 	createRoute(POST, URL, function);
 }
@@ -108,7 +108,7 @@ void Router::createPostRoute(std::string& URL, routeFunction function)
 /*
 	Naredi route preko [createRoute] za put
 */
-void Router::createPutRoute(std::string& URL, routeFunction function)
+void Router::createPutRoute(std::string URL, routeFunction function)
 {
 	createRoute(PUT, URL, function);
 }
@@ -116,7 +116,7 @@ void Router::createPutRoute(std::string& URL, routeFunction function)
 /*
 	Naredi route preko [createRoute] za delete
 */
-void Router::createDeleteRoute(std::string& URL, routeFunction function)
+void Router::createDeleteRoute(std::string URL, routeFunction function)
 {
 	createRoute(DEL, URL, function);
 }
@@ -155,12 +155,12 @@ void Router::routeSelector(http::verb method, std::string& URL, const request& r
 
 		if (regex_match(URL, urlRegex))
 		{
-			if (urlPattern.find("([^/]+)"))
+			if (urlPattern.find("([^/]+)") != urlPattern.npos)
 			{
 				UrlArguments = getParametersFromUrl(URL, urlRegex);
 			}
 
-			function(request, response);
+			function(request, response, this);
 			return;
 		}
 	}
