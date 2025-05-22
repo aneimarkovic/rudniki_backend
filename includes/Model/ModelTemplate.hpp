@@ -44,6 +44,7 @@ public:
 	void touch();
 	std::string extractStringFromBSON(const bsoncxx::document::view& docView, const char* key);
 	timeStamp extractDateFromBSON(const bsoncxx::document::view& docView, const char* key);
+	int extractIntFromBSON(const bsoncxx::document::view& docView, const char* key);
 
 	timeStamp getCreated() const;
 	timeStamp getModifiedCreated() const;

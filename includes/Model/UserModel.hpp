@@ -6,6 +6,7 @@
 #include <string>
 
 #include "Model/ModelTemplate.hpp"
+#include "Model/MineralModel.hpp"
 
 /*
 	Created by �an Misja 09/05/2025
@@ -44,6 +45,7 @@ public:
 
 	void getFromBsonDocument(const bsoncxx::document::view& docView) override;
 	bsoncxx::document::value convertToBsonDocument() override;
+	
 	bool validateUserData(validationType type) const;
 	static std::string getDateFromMS(timeStamp time);
 	bool authUserData() const;

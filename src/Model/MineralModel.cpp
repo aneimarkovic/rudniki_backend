@@ -1,25 +1,30 @@
-﻿// Created by Žan Misja 09/05/2025
-#include "Model/ModelTemplate.hpp"
+//  Created by Anei Markovič 22.5.2025
+#include "Model/MineralModel.hpp"
 
-#include <iostream>
-#include <chrono>
-
-#include <bsoncxx/exception/exception.hpp>
-#include <bsoncxx/document/view.hpp>
-
-/*
-    Način, da naredimo posodobitev private spremenljivke modified
-*/
-void ModelTemplate::touch()
+MineralModel::MineralModel(std::string name, float min, float max, MineralGrade grade) : name(name), min(min), max(max), grade(grade) {}
+MineralModel::MineralModel()
 {
-    modified = GET_NOW_IN_MILLISECONDS();
+    this->name = "";
+    this->min = 0.00;
+    this->max = 0.00;
+    this->grade = UNDEFINED;
+}
+void MineralModel::getFromBsonDocument(const bsoncxx::document::view &docView)
+{
+    try
+    {
+        this->name = extractStringFromBSON(docView, "name");
+        this->min = extractFloatFromBSON(docView, "min");
+        this->max = extractFloatFromBSON(docView, "max");
+        this->grade = extractIntFromBSON(docView, "grade");
+    }
+    catch (const bsoncxx::exception &exception)
+    {
+        std::cerr << "BSON Deserialization Error for MineralModel: " << exception.what() << std::endl;
+    }
 }
 
-/*
-    Funkcija vzame ime polja v BSON in ga da v string format za uporabo.
-    Če polja ni vrne error
-*/
-std::string ModelTemplate::extractStringFromBSON(const bsoncxx::document::view &docView, const char *key)
+std::string MineralModel::extractStringFromBSON(const bsoncxx::document::view &docView, const char *key)
 {
     try
     {
@@ -50,11 +55,7 @@ std::string ModelTemplate::extractStringFromBSON(const bsoncxx::document::view &
     return "";
 }
 
-/*
-    Funkcija vzame ime polja v BSON in ga da v date format za uporabo
-    Če polja ni vrne error
-*/
-timeStamp ModelTemplate::extractDateFromBSON(const bsoncxx::document::view &docView, const char *key)
+float MineralModel::extractFloatFromBSON(const bsoncxx::document::view &docView, const char *key)
 {
     try
     {
@@ -62,13 +63,14 @@ timeStamp ModelTemplate::extractDateFromBSON(const bsoncxx::document::view &docV
 
         if (element)
         {
-            if (element.type() == bsoncxx::type::k_date)
+            if (element.type() == bsoncxx::type::k_double)
             {
-                return element.get_date().value;
+                double tempDouble = element.get_double().value;
+                return static_cast<float>(tempDouble);
             }
             else
             {
-                std::cerr << "Warning: Field '" << key << "' exists but is not a date type (actual type: "
+                std::cerr << "Warning: Field '" << key << "' exists but is not a double type (actual type: "
                           << bsoncxx::to_string(element.type()) << ")." << std::endl;
             }
         }
@@ -83,7 +85,7 @@ timeStamp ModelTemplate::extractDateFromBSON(const bsoncxx::document::view &docV
     }
 }
 
-int ModelTemplate::extractIntFromBSON(const bsoncxx::document::view &docView, const char *key)
+int MineralModel::extractIntFromBSON(const bsoncxx::document::view &docView, const char *key)
 {
     try
     {
@@ -112,11 +114,20 @@ int ModelTemplate::extractIntFromBSON(const bsoncxx::document::view &docView, co
     }
 }
 
-timeStamp ModelTemplate::getCreated() const
+bsoncxx::document::value MineralModel::convertToBsonDocument()
 {
-    return this->created;
+    bsoncxx::builder::basic::document builder{};
+    builder.append(bsoncxx::builder::basic::kvp("name", this->name));
+    builder.append(bsoncxx::builder::basic::kvp("min", this->min));
+    builder.append(bsoncxx::builder::basic::kvp("max", this->max));
+    builder.append(bsoncxx::builder::basic::kvp("grade", this->grade));
+    return builder.extract();
 }
-timeStamp ModelTemplate::getModifiedCreated() const
-{
-    return this->modified;
+
+bool MineralModel::validateMinerals() const{
+    if(grade > UNDEFINED || grade < LOW){
+        return false;
+    }
+    
+    return true;
 }
