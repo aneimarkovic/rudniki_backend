@@ -9,6 +9,9 @@ MineralModel::MineralModel()
     this->max = 0.00;
     this->grade = MineralGrade::UNDEFINED;
 }
+/*
+    Funkcija zgradi MineralModel objekt iz pridobljenega BSON dokumenta
+*/
 void MineralModel::getFromBsonDocument(const bsoncxx::document::view &docView)
 {
     try
@@ -23,7 +26,10 @@ void MineralModel::getFromBsonDocument(const bsoncxx::document::view &docView)
         std::cerr << "BSON Deserialization Error for MineralModel: " << exception.what() << std::endl;
     }
 }
-
+/*
+    Funkcija vzame ime polja v BSON in ga da v string format za uporabo.
+    Če polja ni vrne error
+*/
 std::string MineralModel::extractStringFromBSON(const bsoncxx::document::view &docView, const char *key)
 {
     try
@@ -54,7 +60,10 @@ std::string MineralModel::extractStringFromBSON(const bsoncxx::document::view &d
 
     return "";
 }
-
+/*
+    Funkcija vzame ime polja v BSON in ga da v double format za uporabo
+    Če polja ni vrne error
+*/
 double MineralModel::extractDoubleFromBSON(const bsoncxx::document::view &docView, const char *key)
 {
     try
@@ -83,7 +92,10 @@ double MineralModel::extractDoubleFromBSON(const bsoncxx::document::view &docVie
         std::cerr << "Warning: BSON exception while accessing field '" << key << "': " << e.what() << std::endl;
     }
 }
-
+/*
+    Funkcija vzame ime polja v BSON in ga da v int format za uporabo
+    Če polja ni vrne error
+*/
 int MineralModel::extractIntFromBSON(const bsoncxx::document::view &docView, const char *key)
 {
     try
@@ -112,7 +124,9 @@ int MineralModel::extractIntFromBSON(const bsoncxx::document::view &docView, con
         std::cerr << "Warning: BSON exception while accessing field '" << key << "': " << e.what() << std::endl;
     }
 }
-
+/*
+    Funkcija zgradi BSON dokument iz trenutnega MineralModel objekta
+*/
 bsoncxx::document::value MineralModel::convertToBsonDocument()
 {
     bsoncxx::builder::basic::document builder{};
@@ -122,7 +136,9 @@ bsoncxx::document::value MineralModel::convertToBsonDocument()
     builder.append(bsoncxx::builder::basic::kvp("grade", static_cast<int>(this->grade)));
     return builder.extract();
 }
-
+/*
+    Funkcija, ki preveri oz validira podatke mineralov
+*/
 bool MineralModel::validateMinerals() const
 {
     if (grade > MineralGrade::UNDEFINED || grade < MineralGrade::LOW)

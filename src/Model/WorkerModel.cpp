@@ -12,7 +12,9 @@ WorkerModel::WorkerModel()
     this->type = WorkerType::UNDEFINED;
     this->salary = 0.00;
 }
-
+/*
+    Funkcija zgradi WorkerModel objekt iz pridobljenega BSON dokumenta
+*/
 void WorkerModel::getFromBsonDocument(const bsoncxx::document::view &docView)
 {
     try
@@ -29,7 +31,10 @@ void WorkerModel::getFromBsonDocument(const bsoncxx::document::view &docView)
         std::cerr << "BSON Deserialization Error for WorkerModel: " << exception.what() << std::endl;
     }
 }
-
+/*
+    Funkcija vzame ime polja v BSON in ga da v string format za uporabo.
+    Če polja ni vrne error
+*/
 std::string WorkerModel::extractStringFromBSON(const bsoncxx::document::view &docView, const char *key)
 {
     try
@@ -60,7 +65,10 @@ std::string WorkerModel::extractStringFromBSON(const bsoncxx::document::view &do
 
     return "";
 }
-
+/*
+    Funkcija vzame ime polja v BSON in ga da v double format za uporabo
+    Če polja ni vrne error
+*/
 double WorkerModel::extractDoubleFromBSON(const bsoncxx::document::view &docView, const char *key)
 {
     try
@@ -89,6 +97,10 @@ double WorkerModel::extractDoubleFromBSON(const bsoncxx::document::view &docView
         std::cerr << "Warning: BSON exception while accessing field '" << key << "': " << e.what() << std::endl;
     }
 }
+/*
+    Funkcija vzame ime polja v BSON in ga da v int format za uporabo
+    Če polja ni vrne error
+*/
 int WorkerModel::extractIntFromBSON(const bsoncxx::document::view &docView, const char *key)
 {
     try
@@ -117,6 +129,10 @@ int WorkerModel::extractIntFromBSON(const bsoncxx::document::view &docView, cons
         std::cerr << "Warning: BSON exception while accessing field '" << key << "': " << e.what() << std::endl;
     }
 }
+/*
+    Funkcija vzame ime polja v BSON in ga da v date format za uporabo
+    Če polja ni vrne error
+*/
 timeStamp WorkerModel::extractDateFromBSON(const bsoncxx::document::view &docView, const char *key)
 {
     try
@@ -149,6 +165,9 @@ timeStamp WorkerModel::extractDateFromBSON(const bsoncxx::document::view &docVie
         std::cerr << "Warning: BSON exception while accessing field '" << key << "': " << e.what() << std::endl;
     }
 }
+/*
+    Funkcija zgradi BSON dokument iz trenutnega WorkerModel objekta
+*/
 bsoncxx::document::value WorkerModel::convertToBsonDocument()
 {
     bsoncxx::builder::basic::document builder{};
@@ -161,7 +180,9 @@ bsoncxx::document::value WorkerModel::convertToBsonDocument()
 
     return builder.extract();
 }
-
+/*
+    Funkcija, ki preveri oz validira podatke delavca
+*/
 bool WorkerModel::validateWorkers() const
 {
     if (type > WorkerType::UNDEFINED || type < WorkerType::MINER)

@@ -21,6 +21,7 @@ void MineController::saveMine(const request &request, response &response, Router
   response.body() = jsonStr;
 }
 
+//Funkcija za pridobivanje rudnika
 void MineController::getMine(const request &request, response &response, Router *r)
 {
   auto filters = bsoncxx::builder::basic::make_document(bsoncxx::builder::basic::kvp("_id", bsoncxx::oid{r->UrlArguments[0]}));
@@ -38,6 +39,7 @@ void MineController::getMine(const request &request, response &response, Router 
   }
 }
 
+//Funkcija za brisanje rudnika
 void MineController::deleteMine(const request &request, response &response, Router *r)
 {
   auto filters = bsoncxx::builder::basic::make_document(bsoncxx::builder::basic::kvp("_id", bsoncxx::oid{r->UrlArguments[0]}));

@@ -98,7 +98,7 @@ std::vector<bsoncxx::document::value> DatabaseHandler::fetchMultipleDocuments(co
         return {};
     }
 }
-
+// Funkija zbriše dokument na podlagi filtrov
 bool DatabaseHandler::deleteDocument(const std::string &collectionName, bsoncxx::document::view filters)
 {
     try

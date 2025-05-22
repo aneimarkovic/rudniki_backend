@@ -100,7 +100,9 @@ void MineModel::getFromBsonDocument(const bsoncxx::document::view &docView)
         std::cerr << "BSON Deserialization Error for MineModel: " << exception.what() << std::endl;
     }
 }
-
+/*
+    Funkcija zgradi BSON dokument iz trenutnega MineModel objekta
+*/
 bsoncxx::document::value MineModel::convertToBsonDocument()
 {
     bsoncxx::builder::basic::document builder{};
@@ -132,7 +134,9 @@ bsoncxx::document::value MineModel::convertToBsonDocument()
     builder.append(bsoncxx::builder::basic::kvp("workers", workersArr));
     return builder.extract();
 }
-
+/*
+    Funkcija, ki preveri oz validira podatke rudnika
+*/
 bool MineModel::validateMineData() const
 {
     if (this->type > MineType::DEEPSEA || this->type < MineType::SURFACE)
@@ -169,8 +173,4 @@ bool MineModel::validateMineData() const
         }
     }
     return true;
-}
-
-std::string MineModel::toString() const
-{
 }

@@ -14,6 +14,9 @@ InfrastructureModel::InfrastructureModel()
     this->kilometer = 0;
 }
 
+/*
+    Funkcija zgradi InfrastructureModel objekt iz pridobljenega BSON dokumenta
+*/
 void InfrastructureModel::getFromBsonDocument(const bsoncxx::document::view &docView)
 {
     try
@@ -33,6 +36,10 @@ void InfrastructureModel::getFromBsonDocument(const bsoncxx::document::view &doc
     }
 }
 
+/*
+    Funkcija vzame ime polja v BSON in ga da v string format za uporabo.
+    Če polja ni vrne error
+*/
 std::string InfrastructureModel::extractStringFromBSON(const bsoncxx::document::view &docView, const char *key)
 {
     try
@@ -63,7 +70,10 @@ std::string InfrastructureModel::extractStringFromBSON(const bsoncxx::document::
 
     return "";
 }
-
+/*
+    Funkcija vzame ime polja v BSON in ga da v double format za uporabo
+    Če polja ni vrne error
+*/
 double InfrastructureModel::extractDoubleFromBSON(const bsoncxx::document::view &docView, const char *key)
 {
     try
@@ -92,6 +102,10 @@ double InfrastructureModel::extractDoubleFromBSON(const bsoncxx::document::view 
         std::cerr << "Warning: BSON exception while accessing field '" << key << "': " << e.what() << std::endl;
     }
 }
+/*
+    Funkcija vzame ime polja v BSON in ga da v int format za uporabo
+    Če polja ni vrne error
+*/
 int InfrastructureModel::extractIntFromBSON(const bsoncxx::document::view &docView, const char *key)
 {
     try
@@ -120,6 +134,10 @@ int InfrastructureModel::extractIntFromBSON(const bsoncxx::document::view &docVi
         std::cerr << "Warning: BSON exception while accessing field '" << key << "': " << e.what() << std::endl;
     }
 }
+/*
+    Funkcija vzame ime polja v BSON in ga da v date format za uporabo
+    Če polja ni vrne error
+*/
 timeStamp InfrastructureModel::extractDateFromBSON(const bsoncxx::document::view &docView, const char *key)
 {
     try
@@ -152,7 +170,9 @@ timeStamp InfrastructureModel::extractDateFromBSON(const bsoncxx::document::view
         std::cerr << "Warning: BSON exception while accessing field '" << key << "': " << e.what() << std::endl;
     }
 }
-
+/*
+    Funkcija zgradi BSON dokument iz trenutnega InfrastructureModel objekta
+*/
 bsoncxx::document::value InfrastructureModel::convertToBsonDocument()
 {
     bsoncxx::builder::basic::document builder{};
@@ -166,7 +186,9 @@ bsoncxx::document::value InfrastructureModel::convertToBsonDocument()
     builder.append(bsoncxx::builder::basic::kvp("kilometer", this->kilometer));
     return builder.extract();
 }
-
+/*
+    Funkcija, ki preveri oz validira podatke infrastrukture
+*/
 bool InfrastructureModel::validateInfrastructure() const
 {
     if (status > InfrastructureStatus::UNDEFINED || status < InfrastructureStatus::ACTIVE)
