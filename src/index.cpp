@@ -49,6 +49,9 @@ int main()
         // testDatabaseInsert();
         // getAndPrintAllScrapperData();
         Router::createPostRoute("/mine/save", MineController::saveMine);
+        Router::createPostRoute("/mine/addInfrastructure", MineController::addInfrastructure);
+        Router::createPostRoute("/mine/addMineral", MineController::addMineral);
+        Router::createPostRoute("/mine/addWorker", MineController::addWorker);
         Router::createGetRoute("/mine/get/:id", MineController::getMine);
         Router::createDeleteRoute("/mine/delete/:id", MineController::deleteMine);
 

@@ -31,6 +31,7 @@ public:
 
     static bool insertDocument(const std::string &collectionName, const bsoncxx::document::value document);
     static bool deleteDocument(const std::string &collectionName, bsoncxx::document::view filters);
+    static bool updateOneItem(const std::string &collectionName, bsoncxx::document::view filters, bsoncxx::document::view update);
     static std::optional<bsoncxx::document::value> fetchSingleDocument(const std::string &collectionName, bsoncxx::document::view filters);
     static std::vector<bsoncxx::document::value> fetchMultipleDocuments(const std::string &collectionName, bsoncxx::document::view filters);
 };

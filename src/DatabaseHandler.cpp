@@ -39,6 +39,22 @@ bool DatabaseHandler::insertDocument(const std::string &collectionName, const bs
         return false;
     }
 }
+// Funkcija za posodabljanje ene vrednosti v dokumentu
+bool DatabaseHandler::updateOneItem(const std::string &collectionName, bsoncxx::document::view filters, bsoncxx::document::view update)
+{
+    try
+    {
+        mongocxx::collection collection = DatabaseHandler::db[collectionName];
+        auto result = collection.update_one(filters, update);
+        std::cout << "Posodobljenih dokumentov: " << result->modified_count() << std::endl;
+        return true;
+    }
+    catch (const std::exception &e)
+    {
+        std::cerr << "Napaka pri posodabljanju dokumenta: " << e.what() << std::endl;
+        return false;
+    }
+}
 
 /*
     Funkcija vzame [collectionName] in [filters] in glede na to vrne en objekt če ga najde

@@ -32,8 +32,8 @@ void MineModel::getFromBsonDocument(const bsoncxx::document::view &docView)
 {
     try
     {
-        auto checkID = docView["_id"];
-        if (checkID && checkID.type() == bsoncxx::type::k_oid)
+        auto tempID = docView["_id"];
+        if (tempID && tempID.type() == bsoncxx::type::k_oid)
         {
             this->id = docView["_id"].get_oid().value;
         }
