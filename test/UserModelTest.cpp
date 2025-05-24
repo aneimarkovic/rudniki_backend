@@ -1,6 +1,7 @@
 #include <iostream>
 
 #include "Model/UserModel.hpp"
+#include "HttpServer.hpp"
 
 void testUserValidation()
 {/*
@@ -32,4 +33,10 @@ void testUserValidation()
 
     UserModel user9("ime", "testmail@gmail.com", "Geslo12asd!", timeStamp::zero(), timeStamp::zero(), timeStamp::zero());
     std::cout << "TEST: 9 pričakovano [1] dobljeno:[" << user9.validateUserData(UPDATE_EMAIL) << "]\n"; */
+
+    // std::string jwt = HttpServer::createJWT(bsoncxx::oid());
+    //     UserModel::checkIfUserIsLoggedIn(jwt) ? std::cout << "OK" << std::endl : std::cout << "NE OK" << std::endl;
+    //     std::cout << UserModel::getUserIdFromJWT(jwt).to_string() << std::endl;
+
+    // HttpServer::verifyJWT(jwt) ? std::cout << "OK" << std::endl : std::cout << "NE OK" << std::endl;
 }

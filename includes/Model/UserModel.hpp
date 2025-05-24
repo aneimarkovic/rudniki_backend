@@ -5,8 +5,10 @@
 #include <regex>
 #include <string>
 
+#include <jwt-cpp/jwt.h>
 #include "Model/ModelTemplate.hpp"
 #include "Model/MineralModel.hpp"
+#include "HttpServer.hpp"
 
 /*
 	Created by �an Misja 09/05/2025
@@ -49,4 +51,6 @@ public:
 	bool validateUserData(validationType type) const;
 	static std::string getDateFromMS(timeStamp time);
 	bool authUserData() const;
+	static bool checkIfUserIsLoggedIn(std::string &jwt);
+	static bsoncxx::oid getUserIdFromJWT(std::string &jwt);
 };

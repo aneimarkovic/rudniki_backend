@@ -58,7 +58,7 @@ bsoncxx::document::value UserModel::convertToBsonDocument()
 bool UserModel::validateUserData(validationType type) const
 {
 
-    //USERNAME
+    // USERNAME
     std::regex usernameRegex("^(?:[a-zA-Z0-9_-]){3,}$");
     if (!std::regex_match(this->username, usernameRegex))
     {
@@ -66,24 +66,26 @@ bool UserModel::validateUserData(validationType type) const
         return false;
     }
 
-    //PASSWORD
+    // PASSWORD
     std::regex passwordRegex("^(?=.*[A-Z])(?=.*\\d)(?=.*[@#$%^&*!]).{8,}$");
     if (!std::regex_match(this->password, passwordRegex))
     {
         // std::cout << "Geslo ni ok!\n";
         return false;
     }
-    
-    //MAIL
+
+    // MAIL
     std::regex emailRegex(R"(^([a-zA-Z0-9_\-\.\+]+)@([a-zA-Z0-9_\-\.\+]+\.[a-zA-Z]{2,})$)");
-    if ((type == REGISTRATION || type == UPDATE_EMAIL)) {
-        if (this->email == "" || !std::regex_match(this->email, emailRegex)) {
+    if ((type == REGISTRATION || type == UPDATE_EMAIL))
+    {
+        if (this->email == "" || !std::regex_match(this->email, emailRegex))
+        {
             // std::cout << "Mail ni ok!\n";
             return false;
         }
     }
 
-    //BIRTH DATE
+    // BIRTH DATE
     if (type == REGISTRATION && this->birthDate == timeStamp::zero())
     {
         // std::cout << "Birth date ni definiran";
@@ -124,14 +126,33 @@ bool UserModel::authUserData() const
 {
     using bsoncxx::builder::basic::kvp;
     using bsoncxx::builder::basic::make_document;
-    
+
     auto filter = make_document(
         kvp("username", this->username),
         kvp("email", this->email),
-        kvp("password_hash", this->password)
-    );
+        kvp("password_hash", this->password));
 
     auto result = DatabaseHandler::fetchSingleDocument("users", filter);
 
     return result.has_value();
+}
+
+/*
+    Funkcija, ki preveri ali je uporabnik prijavljen
+*/
+bool UserModel::checkIfUserIsLoggedIn(std::string &jwt)
+{
+    return HttpServer::verifyJWT(jwt);
+}
+/*
+    Funkcija, ki vrne user id iz jwt
+*/
+bsoncxx::oid UserModel::getUserIdFromJWT(std::string &jwt)
+{
+    auto decoded = jwt::decode(jwt);
+    if (decoded.has_payload_claim("user"))
+    {
+        std::string user = decoded.get_payload_claim("user").as_string();
+        return bsoncxx::oid(user);
+    }
 }
