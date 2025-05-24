@@ -11,9 +11,14 @@ po obdelavi zahteve dobi v funkcijo sen objekt odgovor, ki ga pošlje na client 
 #define HTTPSERVER_H
 #include <boost/beast/core.hpp>
 #include <boost/beast/http.hpp>
+#include <bsoncxx/types.hpp>
+#include <jwt-cpp/jwt.h>
+
 #include <string>
 #include <thread>
 #include <iostream>
+#include <string.h>
+#include <chrono>
 
 namespace beast = boost::beast;
 namespace http = beast::http;
@@ -33,5 +38,7 @@ public:
     void parseRequest(tcp::socket socket);
     void getRequest(tcp::socket socket);
     void send(tcp::socket socket, http::response<http::string_body> response);
+    static std::string createJWT(bsoncxx::oid userId);
+    static bool verifyJWT(std::string& token);
 };
 #endif

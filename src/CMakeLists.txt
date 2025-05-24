@@ -34,13 +34,18 @@ if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${MAIN_APP_ENTRY_POINT_FILE}")
         ${MAIN_APP_ENTRY_POINT_FILE} # e.g., main.cpp
     )
 
-    if(WIN32)
+if(WIN32)
         target_compile_definitions(rudnik_app PRIVATE _WIN32_WINNT=0x0A00)
     endif()
 
     target_link_libraries(rudnik_app PRIVATE
         RudnikCore
     )
+
+    target_link_libraries(rudnik_app PRIVATE jwt-cpp::jwt-cpp)
+
+    include_directories(rudnik_app PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../build/_deps/jwt-cpp-src/include")
+    include_directories(rudnik_app PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../out/build/x64-debug/_deps/jwt-cpp-src/include")
 
     target_include_directories(rudnik_app PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/../includes

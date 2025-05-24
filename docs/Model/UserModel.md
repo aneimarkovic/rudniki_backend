@@ -14,6 +14,10 @@ Implemetacija User modela za mongodb bazo.
      Funkcija zgradi UserModel objekt iz pridobljenega BSON dokumenta
 - `convertToBsonDocument`
     Funkcija zgradi BSON dokument iz trenutnega UserModel objekta
+- `checkIfUserIsLoggedIn`
+    Preveri ali je uporabnik prijavljen
+- `getUserIdFromJWT`
+    Iz jwt pridobi userid
     
 ### Uporabljena knjižnica Boost.beast
 [Boost dokumentacija](https://live.boost.org/)
