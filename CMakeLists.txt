@@ -15,7 +15,11 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 SET(CMAKE_FIND_PACKAGE_SORT_ORDER NATURAL)
 SET(CMAKE_FIND_PACKAGE_SORT_DIRECTION DEC)
 
-find_package(Boost 1.88 QUIET COMPONENTS system)
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    find_package(Boost 1.74.0 QUIET COMPONENTS system) 
+else()
+    find_package(Boost 1.88 QUIET COMPONENTS system) 
+endif()
 
 if(NOT Boost_FOUND)
     message(STATUS "Required Boost components (system, beast, asio) not found via find_package.")
