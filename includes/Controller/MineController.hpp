@@ -21,6 +21,7 @@ public:
     static void addMineral(const request &request, response &response, Router* r);
     static void addWorker(const request &request, response &response, Router* r);
     static void generateMineralsValue(const request &request, response &response, Router* r);
+    static void getScrapperMines(const request &request, response &response, Router* r);
 };
 
 #endif

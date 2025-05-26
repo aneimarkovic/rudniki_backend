@@ -290,3 +290,23 @@ void MineController::generateMineralsValue(const request &request, response &res
 
   //    response.body() = geojson;
 }
+void MineController::getScrapperMines(const request &request, response &response, Router* r){
+     bsoncxx::document::view filters{};
+     std::string collName = "mines";
+     std::vector<bsoncxx::document::value> scrapperVec = DatabaseHandler::fetchMultipleDocuments(collName, filters);
+
+     std::string temp = "{";
+     int counter = 0;
+     for (auto &&i : scrapperVec)
+     {
+         // std::cout << bsoncxx::to_json(i) << std::endl;
+         temp += "\"" + std::to_string(counter) + "\":" + bsoncxx::to_json(i);
+         if(counter < scrapperVec.size()-1){
+             temp += ",";
+         }
+         counter++;
+     }
+
+     temp += "}";
+    response.body() = temp;
+}

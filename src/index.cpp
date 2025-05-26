@@ -55,6 +55,7 @@ int main()
         Router::createPostRoute("/mine/addWorker", MineController::addWorker);
         Router::createPostRoute("/mine/generateMinerals", MineController::generateMineralsValue);
         Router::createGetRoute("/mine/get/:id", MineController::getMine);
+        Router::createGetRoute("/", MineController::getScrapperMines);
         Router::createDeleteRoute("/mine/delete/:id", MineController::deleteMine);
 
         Router::createPostRoute("/user/", UserController::loginUser);
