@@ -24,6 +24,58 @@ enum class MineralGrade
     UNDEFINED
 };
 
+enum class MineralName{
+    CLAY,
+    GOLD,
+    GRAVEL,
+    LIMESTONE,
+    GRANITE,
+    MARBLE,
+    BASALT,
+    DIORITE,
+    QUARTZ,
+    SLATE,
+    PEGMATITE,
+    GYPSUM,
+    HALITE,
+    SIDERITE,
+    HEMATITE,
+    MAGNETITE,
+    SULFUR,
+    BAUXITE,
+    FLUORITE,
+    KAOLIN,
+    FELDSPAR,
+    MICA,
+    CALCITE,
+    DOLOMITE,
+    SERPENTINE,
+    PYRITE,
+    CHLORITE,
+    BORNITE,
+    GALENA,
+    KYANITE,
+    CORUNDUM,
+    EMERALD,
+    RUBY,
+    SAPPHIRE,
+    OPAL,
+    TURQUOISE,
+    CINNABAR,
+    GRAPHITE,
+    URANINITE,
+    PLAGIOCLASE,
+    ANDALUSITE,
+    STIBNITE,
+    BARITE,
+    SCAPOLITE,
+    TOURMALINE,
+    MALACHITE,
+    AZURITE,
+    LIMONITE,
+    OLIVINE
+};
+
 class MineralModel
 {
 private:

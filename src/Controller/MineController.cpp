@@ -3,6 +3,8 @@
 
 #include "Controller/MineController.hpp"
 #include "Model/MineModel.hpp"
+#include "Model/PointModel.hpp"
+#include "Model/BordersModel.hpp"
 #include "DatabaseHandler.hpp"
 
 // Funkcija shrani novi rudnik v bazo
@@ -13,8 +15,21 @@ void MineController::saveMine(const request &request, response &response, Router
   MineModel temp;
   temp.getFromBsonDocument(view);
   bsoncxx::document::value insertDocument = temp.convertToBsonDocument();
-  std::string resString = (DatabaseHandler::insertDocument("minesTest", insertDocument) == true ? ("Rudnik uspešno vstavljen!") : ("Pri vstavlajnju rudnika je prišlo do napake!"));
-  bsoncxx::document::value documentTemp = bsoncxx::builder::stream::document{} << "message" << resString << bsoncxx::builder::stream::finalize;
+//  std::string resString = (DatabaseHandler::insertDocumnter("minesTest", insertDocument) == true ? ("Rudnik uspešno vstavljen!") : ("Pri vstavlajnju rudnika je prišlo do napake!"));
+  std::optional<bsoncxx::oid> id = DatabaseHandler::insertDocumentGetInsertId("minesTest", insertDocument);
+
+  BordersModel borders;
+  if(id){
+    bsoncxx::oid actualId = *id;
+    borders.setMineId(actualId);
+  }
+//  std::cout << borders.mineId.to_string() << std::endl;
+  borders.getFromBsonDocument(view);
+  insertDocument = borders.convertToBsonDocument();
+
+  std::string resString = (DatabaseHandler::insertDocument("bordersTest", insertDocument) ? ("Meje uspešno vstavljen!") : ("Pri vstavlajnju mej je prišlo do napake!"));
+  bsoncxx::document::value documentTemp = bsoncxx::builder::stream::document{} << "message" << id->to_string() << bsoncxx::builder::stream::finalize;
+//  bsoncxx::document::value documentTemp = bsoncxx::builder::stream::document{} << "message" << resString << bsoncxx::builder::stream::finalize;
   bsoncxx::document::view viewTemp = documentTemp.view();
   std::string jsonStr = bsoncxx::to_json(viewTemp);
 
@@ -59,8 +74,8 @@ void MineController::addInfrastructure(const request &request, response &respons
   bsoncxx::document::view view = document.view();
 
   auto mineIdElement = view["id"];
-  auto sv = mineIdElement.get_string().value;
-  std::string str_val(sv.data(), sv.size());
+  auto stringView = mineIdElement.get_string().value;
+  std::string str_val(stringView.data(), stringView.size());
   bsoncxx::oid mineID = bsoncxx::oid(str_val);
 
   auto filters = bsoncxx::builder::basic::make_document(bsoncxx::builder::basic::kvp("_id", mineID));
@@ -100,8 +115,8 @@ void MineController::addMineral(const request &request, response &response, Rout
   bsoncxx::document::view view = document.view();
 
   auto mineIdElement = view["id"];
-  auto sv = mineIdElement.get_string().value;
-  std::string str_val(sv.data(), sv.size());
+  auto stringView = mineIdElement.get_string().value;
+  std::string str_val(stringView.data(), stringView.size());
   bsoncxx::oid mineID = bsoncxx::oid(str_val);
 
   auto filters = bsoncxx::builder::basic::make_document(bsoncxx::builder::basic::kvp("_id", mineID));
@@ -141,8 +156,8 @@ void MineController::addWorker(const request &request, response &response, Route
   bsoncxx::document::view view = document.view();
 
   auto mineIdElement = view["id"];
-  auto sv = mineIdElement.get_string().value;
-  std::string str_val(sv.data(), sv.size());
+  auto stringView = mineIdElement.get_string().value;
+  std::string str_val(stringView.data(), stringView.size());
   bsoncxx::oid mineID = bsoncxx::oid(str_val);
 
   auto filters = bsoncxx::builder::basic::make_document(bsoncxx::builder::basic::kvp("_id", mineID));
@@ -173,4 +188,105 @@ void MineController::addWorker(const request &request, response &response, Route
   std::string resString = (DatabaseHandler::updateOneItem("minesTest", filters, updateValue) == true ? ("Delavci uspešno dodani!") : ("Pri dodajanju delavcev je prišlo do napake!"));
   bsoncxx::document::value documentTemp = bsoncxx::builder::stream::document{} << "message" << resString << bsoncxx::builder::stream::finalize;
   response.body() = bsoncxx::to_json(documentTemp.view());
+}
+
+void MineController::generateMineralsValue(const request &request, response &response, Router *r)
+{
+  bsoncxx::document::value document = bsoncxx::from_json(request.body());
+  bsoncxx::document::view view = document.view();
+
+  double pi = 3.14159200000000016217427400988526642322540283203125;
+  double earthRadius = 6378000.0;
+
+  PointModel center(view["lon"].get_double(), view["lat"].get_double());
+
+  double distance = 5000; // 5000m
+
+  double lat1 = center.getLat() * pi / 180.0;
+  double lon1 = center.getLon() * pi / 180.0;
+
+  std::vector<PointModel> pointVec;
+  for (int i = 0; i < 360; i += 2)
+  {
+    double angle = i * pi / 180.0;
+
+    double lat = std::asin(std::sin(lat1) * std::cos(distance / earthRadius) +
+                           std::cos(lat1) * std::sin(distance / earthRadius) * std::cos(angle));
+
+    double lon = lon1 + std::atan2(std::sin(angle) * std::sin(distance / earthRadius) * std::cos(lat1),
+                                   std::cos(distance / earthRadius) - std::sin(lat1) * std::sin(lat));
+
+    PointModel temp(lat * 180.0 / pi, lon * 180.0 / pi);
+    pointVec.push_back(temp);
+  }
+
+  // Da sklenemo krog
+  pointVec.push_back(pointVec[0]);
+
+  bsoncxx::builder::basic::array coordinatesArray = bsoncxx::builder::basic::array{};
+  for (PointModel it : pointVec)
+  {
+    bsoncxx::builder::basic::array tempArr = bsoncxx::builder::basic::array{};
+    tempArr.append(it.getLon());
+    tempArr.append(it.getLat());
+    coordinatesArray.append(tempArr.extract());
+  }
+
+
+  bsoncxx::builder::basic::array polygon;
+  polygon.append(coordinatesArray.extract());
+
+    bsoncxx::builder::basic::document polygonDoc;
+    polygonDoc.append(
+            bsoncxx::builder::basic::kvp("type", "Polygon"),
+            bsoncxx::builder::basic::kvp("coordinates", polygon)
+    );
+    bsoncxx::builder::basic::document geoWithinDoc;
+    geoWithinDoc.append(
+            bsoncxx::builder::basic::kvp("$geometry", polygonDoc)
+    );
+    bsoncxx::builder::basic::document query;
+    query.append(
+    bsoncxx::builder::basic::kvp("geometry",
+                                 bsoncxx::builder::basic::make_document(
+                                         bsoncxx::builder::basic::kvp("$geoWithin", geoWithinDoc)
+                                 )
+    )
+    );
+
+    std::vector<bsoncxx::document::value>
+          results = DatabaseHandler::fetchMultipleDocuments("bordersTest", query.view());
+
+  for (bsoncxx::document::value& it : results)
+  {
+    std::cout << bsoncxx::to_json(it) << std::endl;
+  }
+
+  //    std::string geojson = "{ \n"
+  //                          "\"type\": \"FeatureCollection\", \n"
+  //                          "\"features\":[\n"
+  //                          "{\n"
+  //                          "\"type\": \"Feature\",\n"
+  //                          "\"properties\": {},\n"
+  //                          "\"geometry\":{\n"
+  //                          "\"type\": \"Polygon\",\n"
+  //                          "\"coordinates\":[\n"
+  //                          "[\n";
+  //
+  //    for(int i = 0; i < pointVec.size(); i++){
+  //        if(i < pointVec.size() - 1){
+  //            geojson += pointVec[i].toString() + ",\n";
+  //        } else {
+  //            geojson += pointVec[i].toString() + "\n";
+  //        }
+  //    }
+
+  //    geojson += "]\n"
+  //               "]\n"
+  //               "}\n"
+  //               "}\n"
+  //               "]\n"
+  //               "}\n";
+
+  //    response.body() = geojson;
 }

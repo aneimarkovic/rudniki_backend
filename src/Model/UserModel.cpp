@@ -122,19 +122,23 @@ std::string UserModel::getDateFromMS(timeStamp time)
 /*
     Funkcija, ki preveri oz avtenticira podatke uporabnika
 */
-bool UserModel::authUserData() const
+std::optional<bsoncxx::oid> UserModel::authUserData() const
 {
+    try {
     using bsoncxx::builder::basic::kvp;
     using bsoncxx::builder::basic::make_document;
 
-    auto filter = make_document(
-        kvp("username", this->username),
-        kvp("email", this->email),
-        kvp("password_hash", this->password));
+    bsoncxx::document::value filter = this->username != "" ? make_document(kvp("username", this->username),kvp("password", this->password)) : make_document(
+            kvp("email", this->email),
+            kvp("password", this->password));
 
     auto result = DatabaseHandler::fetchSingleDocument("users", filter);
 
-    return result.has_value();
+    bsoncxx::document::view resultView = result->view();
+        return resultView["_id"].get_oid().value;
+    } catch (const std::exception &e){
+        return std::nullopt;
+    }
 }
 
 /*
@@ -154,5 +158,25 @@ bsoncxx::oid UserModel::getUserIdFromJWT(std::string &jwt)
     {
         std::string user = decoded.get_payload_claim("user").as_string();
         return bsoncxx::oid(user);
+    }
+}
+
+std::string UserModel::toString() const{
+    return this->username + "\n" +
+            this->password + "\n" +
+            this->email + "\n";
+}
+
+void UserModel::getFromBsonDocumentLogin(const bsoncxx::document::view &docView)
+{
+    try
+    {
+        this->username = extractStringFromBSON(docView, "username");
+        this->email = extractStringFromBSON(docView, "email");
+        this->password = extractStringFromBSON(docView, "password");
+    }
+    catch (const bsoncxx::exception &e)
+    {
+        std::cerr << "BSON Deserialization Error for UserModel in LOGIN: " << e.what() << std::endl;
     }
 }

@@ -8,6 +8,7 @@
 
 #include "RouterUtil/Router.hpp"
 #include "Controller/MineController.hpp"
+#include "Controller/UserController.hpp"
 
 void testDatabaseInsert()
 {
@@ -23,7 +24,7 @@ void testDatabaseInsert()
             << "modified" << timeISO;
 
     bsoncxx::document::value document = builder.extract();
-    std::cout << (DatabaseHandler::insertDocument("user", document) ? "uspešno!" : "neuspešno!") << std::endl;
+    std::cout << (DatabaseHandler::insertDocument("users", document) ? "uspešno!" : "neuspešno!") << std::endl;
 }
 
 void getAndPrintAllScrapperData()
@@ -46,15 +47,19 @@ int main()
 {
     try
     {
-        // testDatabaseInsert();
+//         testDatabaseInsert();
         // getAndPrintAllScrapperData();
         Router::createPostRoute("/mine/save", MineController::saveMine);
         Router::createPostRoute("/mine/addInfrastructure", MineController::addInfrastructure);
         Router::createPostRoute("/mine/addMineral", MineController::addMineral);
         Router::createPostRoute("/mine/addWorker", MineController::addWorker);
+        Router::createPostRoute("/mine/generateMinerals", MineController::generateMineralsValue);
         Router::createGetRoute("/mine/get/:id", MineController::getMine);
         Router::createDeleteRoute("/mine/delete/:id", MineController::deleteMine);
 
+        Router::createPostRoute("/user/", UserController::loginUser);
+
+        DatabaseHandler::create2dsphereIndex("bordersTest", "geometry") ? std::cout << "OK\n" : std::cout << "NE OK\n";
         HttpServer server("127.0.0.1", "8080");
         server.runServer();
     }

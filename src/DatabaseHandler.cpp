@@ -39,6 +39,28 @@ bool DatabaseHandler::insertDocument(const std::string &collectionName, const bs
         return false;
     }
 }
+//Funkcija, ki vrne insertId namesto bool
+std::optional<bsoncxx::oid> DatabaseHandler::insertDocumentGetInsertId(const std::string &collectionName, const bsoncxx::document::value document)
+{
+    try
+    {
+        mongocxx::collection collection = DatabaseHandler::db[collectionName];
+        auto result = collection.insert_one(document.view());
+        std::cout << "Dokument pravilno vstavljen!\n";
+        bsoncxx::types::bson_value::view id = result->inserted_id();
+        if (id.type() == bsoncxx::type::k_oid) {
+            bsoncxx::oid oid = id.get_oid().value;
+            return oid;
+        }
+
+        return std::nullopt;
+    }
+    catch (const std::exception &e)
+    {
+        std::cerr << "Napaka pri vstavljanju dokumenta: " << e.what() << std::endl;
+        return std::nullopt;
+    }
+}
 // Funkcija za posodabljanje ene vrednosti v dokumentu
 bool DatabaseHandler::updateOneItem(const std::string &collectionName, bsoncxx::document::view filters, bsoncxx::document::view update)
 {
@@ -127,6 +149,26 @@ bool DatabaseHandler::deleteDocument(const std::string &collectionName, bsoncxx:
     catch (const std::exception &e)
     {
         std::cerr << "Napaka pri brisanju dokumenta: " << e.what() << std::endl;
+        return false;
+    }
+}
+
+std::vector<bsoncxx::document::value> DatabaseHandler::getMinerals(const std::string &collectionName, std::vector<PointModel> vec){
+
+}
+
+bool DatabaseHandler::create2dsphereIndex(const std::string& collectionName, const std::string& fieldName)
+{
+    try {
+        mongocxx::collection collection = DatabaseHandler::db[collectionName];
+        bsoncxx::builder::basic::document indexDoc{};
+        indexDoc.append(bsoncxx::builder::basic::kvp(fieldName, "2dsphere"));
+
+        auto result = collection.create_index(indexDoc.view());
+
+        return true;
+    } catch (const std::exception& e) {
+        std::cout << e.what() << "\n";
         return false;
     }
 }

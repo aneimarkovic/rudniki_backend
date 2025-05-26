@@ -50,7 +50,10 @@ public:
 	
 	bool validateUserData(validationType type) const;
 	static std::string getDateFromMS(timeStamp time);
-	bool authUserData() const;
+    std::optional<bsoncxx::oid> authUserData() const;
 	static bool checkIfUserIsLoggedIn(std::string &jwt);
 	static bsoncxx::oid getUserIdFromJWT(std::string &jwt);
+
+    std::string toString() const;
+    void getFromBsonDocumentLogin(const bsoncxx::document::view &docView);
 };

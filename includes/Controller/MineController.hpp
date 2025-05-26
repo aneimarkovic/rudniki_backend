@@ -9,6 +9,7 @@
 #include <bsoncxx/json.hpp>
 #include <bsoncxx/builder/basic/document.hpp>
 #include <bsoncxx/builder/stream/document.hpp>
+#include  <bsoncxx/builder/stream/array.hpp>
 
 class MineController
 {
@@ -19,6 +20,7 @@ public:
     static void addInfrastructure(const request &request, response &response, Router* r);
     static void addMineral(const request &request, response &response, Router* r);
     static void addWorker(const request &request, response &response, Router* r);
+    static void generateMineralsValue(const request &request, response &response, Router* r);
 };
 
 #endif
