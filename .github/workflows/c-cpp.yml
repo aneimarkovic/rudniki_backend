@@ -38,7 +38,8 @@ jobs:
 
       - name: Build (Windows)
         if: matrix.os == 'windows-latest'
-        run: cmake -S . -B build -DCMAKE_TOOLCHAIN_FILE=%CD%\vcpkg\scripts\buildsystems\vcpkg.cmake
+        shell: powershell
+        run: cmake -S . -B build -DCMAKE_TOOLCHAIN_FILE="${PWD}\\vcpkg\\scripts\\buildsystems\\vcpkg.cmake"
 
       - name: Build (macOS)
         if: matrix.os == 'macos-latest'
