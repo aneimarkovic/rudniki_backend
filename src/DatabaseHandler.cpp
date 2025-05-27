@@ -2,7 +2,7 @@
 #include "DatabaseHandler.hpp"
 
 mongocxx::instance DatabaseHandler::instance{};
-mongocxx::uri DatabaseHandler::uri("mongodb+srv://aneimarkovic:Markovic0706@cluster0.i2yjhqa.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0");
+mongocxx::uri DatabaseHandler::uri("mongodb+srv://darkosever:KeriBurazi69@imerudniki.a8kpflt.mongodb.net/?retryWrites=true&w=majority&appName=ImeRudniki");
 mongocxx::options::client DatabaseHandler::clientOptions{};
 mongocxx::client DatabaseHandler::connection = DatabaseHandler::createClientWithApi(DatabaseHandler::uri, DatabaseHandler::clientOptions);
 mongocxx::database DatabaseHandler::db = DatabaseHandler::connection["ImeRudnikiDatabase"];
