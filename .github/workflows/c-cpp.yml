@@ -12,7 +12,7 @@ jobs:
 
     strategy:
       matrix:
-        os: [windows-latest, macos-latest]
+        os: [ubuntu-latest, macos-latest]
 
     steps:
       - uses: actions/checkout@v4
@@ -25,24 +25,12 @@ jobs:
           brew install mongo-cxx-driver
           brew install catch2
 
-      - name: Install vcpkg (Windows)
-        if: matrix.os == 'windows-latest'
+      - name: Install dependencies (Ubuntu)
+        if: matrix.os == 'ubuntu-latest'
         run: |
-          git clone https://github.com/microsoft/vcpkg.git
-          .\vcpkg\bootstrap-vcpkg.bat
+          sudo apt install libssl-dev libboost-system-dev libboost-beast-dev libboost-asio-dev libmongocxx-dev libbsoncxx-dev catch2
 
-      - name: Install dependencies (Windows)
-        if: matrix.os == 'windows-latest'
-        run: |
-          .\vcpkg\vcpkg.exe install openssl boost-system boost-beast boost-asio mongo-cxx-driver catch2
-
-      - name: Build (Windows)
-        if: matrix.os == 'windows-latest'
-        shell: powershell
-        run: cmake -S . -B build -DCMAKE_TOOLCHAIN_FILE="${PWD}\\vcpkg\\scripts\\buildsystems\\vcpkg.cmake"
-
-      - name: Build (macOS)
-        if: matrix.os == 'macos-latest'
+      - name: Build
         run: cmake -S . -B build
 
       - name: Compile
