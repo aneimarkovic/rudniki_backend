@@ -8,45 +8,30 @@ on:
 
 jobs:
   build:
-    build:
+    runs-on: ${{ matrix.os }}
 
-        strategy:
-          matrix:
-            os: [ ubuntu-latest, windows-latest, macos-latest ]
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
 
-          runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
 
-          steps:
-          - uses: actions/checkout@v4
+      - name: Install dependencies (macOS)
+        if: matrix.os == 'macos-latest'
+        run: |
+          brew install openssl
+          brew install boost
+          brew install mongo-cxx-driver
+          brew install catch2
 
-          - if: matrix.os == 'macos-latest'
-          - name: Install dependencies (MACOS)
-            run: |
-              brew install openssl
-              brew install boost
-              brew install mongo-cxx-driver
-              brew install catch2
+      - name: Install dependencies (Windows)
+        if: matrix.os == 'windows-latest'
+        run: |
+          .\vcpkg install openssl boost-system boost-beast boost-asio mongo-cxx-driver catch2
 
-          - if: matrix.os == 'macos-latest'
-          - name: Build (MACOS)
-            run: cmake -S . -B build
+      - name: Generate Build Files
+        run: cmake -S . -B build
 
-          - if: matrix.os == 'macos-latest'
-          - name: Compile (MACOS)
-            run: cmake --build build --config Release
-
-          - if: matrix.os == 'windows-latest'
-          - name: Install vcpkg (WINDOWS)
-            run .\vcpkg integrate install
-
-          - if: matrix.os == 'windows-latest'
-          - name: Install dependencies (WINDOWS)
-            run .\vcpkg install openssl boost-system boost-beast boost-asio mongo-cxx-driver catch2
-
-          - if: matrix.os == 'windows-latest'
-          - name: Build (WINDOWS)
-            run cmake -S . -B build
-
-          - if: matrix.os == 'windows-latest'
-          - name: Compile (WINDOWS)
-            run cmake --build build --config Release
+      - name: Compile
+        run: cmake --build build --config Release
