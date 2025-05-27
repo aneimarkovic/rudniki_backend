@@ -29,7 +29,14 @@ jobs:
         if: matrix.os == 'ubuntu-latest'
         run: |
           sudo apt update
-          sudo apt install libssl-dev libboost-system-dev libboost-beast-dev libboost-asio-dev libmongocxx-dev libbsoncxx-dev catch2
+          sudo apt install build-essential cmake libssl-dev libsasl2-dev      
+          git clone https://github.com/mongodb/mongo-cxx-driver.git --branch releases/stable --depth 1
+          cd mongo-cxx-driver/build
+          mkdir -p build
+          cd build
+          cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local
+          sudo cmake --build . --target install
+
 
       - name: Build
         run: cmake -S . -B build
