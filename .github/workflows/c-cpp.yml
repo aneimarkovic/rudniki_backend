@@ -27,14 +27,21 @@ jobs:
 
       - name: Install vcpkg (Windows)
         if: matrix.os == 'windows-latest'
-        run: .\vcpkg integrate install
+        run: |
+          git clone https://github.com/microsoft/vcpkg.git
+          .\vcpkg\bootstrap-vcpkg.bat
 
       - name: Install dependencies (Windows)
         if: matrix.os == 'windows-latest'
         run: |
-          .\vcpkg install openssl boost-system boost-beast boost-asio mongo-cxx-driver catch2
+          .\vcpkg\vcpkg.exe install openssl boost-system boost-beast boost-asio mongo-cxx-driver catch2
 
-      - name: Generate Build Files
+      - name: Build (Windows)
+        if: matrix.os == 'windows-latest'
+        run: cmake -S . -B build -DCMAKE_TOOLCHAIN_FILE=%CD%\vcpkg\scripts\buildsystems\vcpkg.cmake
+
+      - name: Build (macOS)
+        if: matrix.os == 'macos-latest'
         run: cmake -S . -B build
 
       - name: Compile
