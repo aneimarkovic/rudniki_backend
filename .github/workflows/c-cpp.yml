@@ -1,0 +1,30 @@
+name: C/C++ CI
+
+on:
+  push:
+    branches: [ "dev" ]
+  pull_request:
+    branches: [ "dev" ]
+
+jobs:
+  build:
+    runs-on: macos-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Install Dependencies
+
+      run: |
+        brew install openssl
+        brew install boost
+        brew install mongo-cxx-driver
+        brew install catch2
+
+    - name: build
+      run: cmake -S . -B build
+
+    - name: compile
+      run: cmake --build build --config Release
+      
+    - name: run
+      run: ./build/src/rudnik_app
