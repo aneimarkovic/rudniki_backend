@@ -24,19 +24,12 @@ jobs:
           brew install boost
           brew install mongo-cxx-driver
           brew install catch2
-
+          
       - name: Install dependencies (Ubuntu)
         if: matrix.os == 'ubuntu-latest'
         run: |
           sudo apt update
-          sudo apt install build-essential cmake libssl-dev libsasl2-dev      
-          git clone https://github.com/mongodb/mongo-cxx-driver.git --branch releases/stable --depth 1
-          cd mongo-cxx-driver/build
-          mkdir -p build
-          cd build
-          cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local
-          sudo cmake --build . --target install
-
+          sudo apt install -y libssl-dev libboost-all-dev libmongocxx-dev libbsoncxx-dev catch2 cmake build-essential
 
       - name: Build
         run: cmake -S . -B build
