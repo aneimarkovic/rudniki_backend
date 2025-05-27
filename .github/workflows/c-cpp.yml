@@ -25,6 +25,3 @@ jobs:
 
     - name: compile
       run: cmake --build build --config Release
-      
-    - name: run
-      run: ./build/src/rudnik_app
