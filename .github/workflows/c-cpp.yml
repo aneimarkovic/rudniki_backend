@@ -28,6 +28,7 @@ jobs:
       - name: Install dependencies (Ubuntu)
         if: matrix.os == 'ubuntu-latest'
         run: |
+          sudo apt update
           sudo apt install libssl-dev libboost-system-dev libboost-beast-dev libboost-asio-dev libmongocxx-dev libbsoncxx-dev catch2
 
       - name: Build
