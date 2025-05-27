@@ -16,6 +16,12 @@
     ustvari instanco podatkovne baze, povezavo in db objekt (poveže z bazo in pinga), preveri ali je povezava vzpostavljena.
 - `Insert Document`
     prejme ime collectiona, in podatke že v formatu za vstavljanje in vstavi v bazo.
+- `deleteDocument`
+  Funkcija za brisanje dokumenta
+- `updateOneItem`
+  Funkcija, ki updata en dokument
+- `getSpecificColumnFromDocument`
+  Funkcija, ki prejme stolpec in filter in vrne tisti stolpec.
 
-    ### Uporabljena knjižnica mongocxx
+  ### Uporabljena knjižnica mongocxx
 [Mongo dokumentacija](https://cloud.mongodb.com/v2/67eba2f3cda2c84940f02ab6#/overview?connectCluster=Cluster0)

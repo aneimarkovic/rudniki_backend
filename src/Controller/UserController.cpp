@@ -10,6 +10,7 @@ bool UserController::saveUser(UserModel user)
 	return DatabaseHandler::insertDocument("users", user.convertToBsonDocument());
 }
 
+//Funkcija, ki prijavi uporabnika in vrne njegov id
 void UserController::loginUser(const request &request, response &response, Router* r){
     bsoncxx::document::value document = bsoncxx::from_json(request.body());
     bsoncxx::document::view view = document.view();
@@ -17,7 +18,7 @@ void UserController::loginUser(const request &request, response &response, Route
     UserModel temp;
     temp.getFromBsonDocumentLogin(view);
 
-    std::cout << temp.toString() << std::endl;
+//    std::cout << temp.toString() << std::endl;
 
 
     std::optional<bsoncxx::oid> id = temp.authUserData();

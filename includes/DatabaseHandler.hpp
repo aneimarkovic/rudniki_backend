@@ -40,7 +40,7 @@ public:
     static bool updateOneItem(const std::string &collectionName, bsoncxx::document::view filters, bsoncxx::document::view update);
     static std::optional<bsoncxx::document::value> fetchSingleDocument(const std::string &collectionName, bsoncxx::document::view filters);
     static std::vector<bsoncxx::document::value> fetchMultipleDocuments(const std::string &collectionName, bsoncxx::document::view filters);
-    static std::vector<bsoncxx::document::value> getMinerals(const std::string &collectionName, std::vector<PointModel> vec);
+    static std::vector<bsoncxx::document::value> getSpecificColumnFromDocument(const std::string &collectionName, const mongocxx::options::find& column, const bsoncxx::document::value& filters);
 
     static bool create2dsphereIndex(const std::string& collectionName, const std::string& fieldName);
 };

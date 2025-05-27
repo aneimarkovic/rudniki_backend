@@ -2,7 +2,7 @@
 #include "DatabaseHandler.hpp"
 
 mongocxx::instance DatabaseHandler::instance{};
-mongocxx::uri DatabaseHandler::uri("mongodb+srv://darkosever:KeriBurazi69@imerudniki.a8kpflt.mongodb.net/?retryWrites=true&w=majority&appName=ImeRudniki");
+mongocxx::uri DatabaseHandler::uri("mongodb+srv://aneimarkovic:Markovic0706@cluster0.i2yjhqa.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0");
 mongocxx::options::client DatabaseHandler::clientOptions{};
 mongocxx::client DatabaseHandler::connection = DatabaseHandler::createClientWithApi(DatabaseHandler::uri, DatabaseHandler::clientOptions);
 mongocxx::database DatabaseHandler::db = DatabaseHandler::connection["ImeRudnikiDatabase"];
@@ -153,8 +153,25 @@ bool DatabaseHandler::deleteDocument(const std::string &collectionName, bsoncxx:
     }
 }
 
-std::vector<bsoncxx::document::value> DatabaseHandler::getMinerals(const std::string &collectionName, std::vector<PointModel> vec){
+//Funkcija, ki pridobi specifičen stolpec iz dokumenta
+std::vector<bsoncxx::document::value> DatabaseHandler::getSpecificColumnFromDocument(const std::string &collectionName, const mongocxx::options::find& column, const bsoncxx::document::value& filters){
+    try
+    {
+        std::vector<bsoncxx::document::value> documents;
+        mongocxx::collection collection = DatabaseHandler::db[collectionName];
+        mongocxx::cursor cursor = collection.find(filters.view(), column);
 
+        for (bsoncxx::document::view doc_view : cursor)
+        {
+            documents.emplace_back(doc_view);
+        }
+
+        return documents;
+    }
+    catch (const std::exception &e)
+    {
+        std::cerr << "Napaka pri pridobivanju dokumenta: " << e.what() << std::endl;
+    }
 }
 
 bool DatabaseHandler::create2dsphereIndex(const std::string& collectionName, const std::string& fieldName)

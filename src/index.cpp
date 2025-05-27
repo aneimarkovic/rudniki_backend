@@ -48,19 +48,24 @@ int main()
     try
     {
 //         testDatabaseInsert();
-        // getAndPrintAllScrapperData();
+//         getAndPrintAllScrapperData();
+
+//        Mine routes
         Router::createPostRoute("/mine/save", MineController::saveMine);
         Router::createPostRoute("/mine/addInfrastructure", MineController::addInfrastructure);
         Router::createPostRoute("/mine/addMineral", MineController::addMineral);
         Router::createPostRoute("/mine/addWorker", MineController::addWorker);
         Router::createPostRoute("/mine/generateMinerals", MineController::generateMineralsValue);
+
         Router::createGetRoute("/mine/get/:id", MineController::getMine);
         Router::createGetRoute("/", MineController::getScrapperMines);
+
         Router::createDeleteRoute("/mine/delete/:id", MineController::deleteMine);
 
+//        User routes
         Router::createPostRoute("/user/", UserController::loginUser);
 
-        DatabaseHandler::create2dsphereIndex("bordersTest", "geometry") ? std::cout << "OK\n" : std::cout << "NE OK\n";
+//        DatabaseHandler::create2dsphereIndex("bordersTest", "geometry") ? std::cout << "OK\n" : std::cout << "NE OK\n";
         HttpServer server("127.0.0.1", "8080");
         server.runServer();
     }

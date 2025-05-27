@@ -189,7 +189,7 @@ void MineController::addWorker(const request &request, response &response, Route
   bsoncxx::document::value documentTemp = bsoncxx::builder::stream::document{} << "message" << resString << bsoncxx::builder::stream::finalize;
   response.body() = bsoncxx::to_json(documentTemp.view());
 }
-
+//Funkcija, ki pridobi vse razpoložljive minerale
 void MineController::generateMineralsValue(const request &request, response &response, Router *r)
 {
   bsoncxx::document::value document = bsoncxx::from_json(request.body());
@@ -257,10 +257,45 @@ void MineController::generateMineralsValue(const request &request, response &res
     std::vector<bsoncxx::document::value>
           results = DatabaseHandler::fetchMultipleDocuments("bordersTest", query.view());
 
+  std::vector<bsoncxx::oid> vecOfMines;
   for (bsoncxx::document::value& it : results)
   {
-    std::cout << bsoncxx::to_json(it) << std::endl;
+//      std::cout << bsoncxx::to_json(it) << std::endl;
+      view = it.view();
+      if (view["mineId"] && view["mineId"].type() == bsoncxx::type::k_oid)
+      {
+          bsoncxx::oid id = view["mineId"].get_oid().value;
+          vecOfMines.push_back(id);
+      }
   }
+
+    bsoncxx::builder::stream::document filterBuilder;
+    auto array_builder = bsoncxx::builder::stream::array{};
+    for (const bsoncxx::oid& oid : vecOfMines)
+    {
+        array_builder << oid;
+//        std::cout << "ID: " << oid.to_string() << std::endl;
+    }
+
+    filterBuilder << "_id" << bsoncxx::builder::stream::open_document
+                   << "$in" << array_builder
+                   << bsoncxx::builder::stream::close_document;
+
+    bsoncxx::document::value filterDoc = filterBuilder << bsoncxx::builder::stream::finalize;
+    mongocxx::options::find opts{};
+    opts.projection(bsoncxx::builder::stream::document{} << "minerals" << 1 << "_id" << 0 << bsoncxx::builder::stream::finalize);
+
+    std::vector<bsoncxx::document::value> mineralsDoc = DatabaseHandler::getSpecificColumnFromDocument(
+            "minesTest", opts, std::move(filterDoc)
+    );
+
+    std::string temp;
+    for(bsoncxx::document::value& it : mineralsDoc){
+//        std::cout << bsoncxx::to_json(it) << std::endl;
+        response.body() += bsoncxx::to_json(it);
+    }
+
+//    response.body() += temp;
 
   //    std::string geojson = "{ \n"
   //                          "\"type\": \"FeatureCollection\", \n"
@@ -290,6 +325,7 @@ void MineController::generateMineralsValue(const request &request, response &res
 
   //    response.body() = geojson;
 }
+//Funkcija, ki vrne vse razpoložljive rudnika pridobljene z scraperom
 void MineController::getScrapperMines(const request &request, response &response, Router* r){
      bsoncxx::document::view filters{};
      std::string collName = "mines";
