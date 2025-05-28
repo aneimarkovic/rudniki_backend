@@ -24,10 +24,14 @@ jobs:
           brew install mongo-cxx-driver
           brew install catch2
 
+      - name: Docker version če je sploh nameščen
+        if: matrix.os == 'ubuntu-latest'
+        run: docker --version
+
       - name: Build Docker
         if: matrix.os == 'ubuntu-latest'
         run: |
-          docker build -f Docker/Dockerfile -t my-main-app .
+          docker build -f Docker/Dockerfile -t rudniki_app .
 
       - name: Build Docker for catch 2
         if: matrix.os == 'ubuntu-latest'
@@ -37,7 +41,7 @@ jobs:
       - name: Run Docker
         if: matrix.os == 'ubuntu-latest'
         run: |
-          docker run -d --name main-app my-main-app
+          docker run -d --name main-app rudniki_app
 
       - name: Run Docker catch 2
         if: matrix.os == 'ubuntu-latest'
