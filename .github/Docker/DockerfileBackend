@@ -1,5 +1,5 @@
-FROM mongo-cxx-driver-image:r3.10.0 AS prebuilt_mongo_driver
-FROM catch2-image:v3.6.0 AS prebuilt_catch2
+FROM aneimarkovic/mongo-cxx-driver-image:r3.10.0 AS prebuilt_mongo_driver
+FROM aneimarkovic/catch2-image:v3.6.0 AS prebuilt_catch2
 
 FROM ubuntu:22.04 AS builder
 
