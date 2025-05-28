@@ -16,7 +16,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-
       - name: Install dependencies (macOS)
         if: matrix.os == 'macos-latest'
         run: |
@@ -24,15 +23,32 @@ jobs:
           brew install boost
           brew install mongo-cxx-driver
           brew install catch2
-          
-      - name: Install dependencies (Ubuntu)
+
+      - name: Build Docker
         if: matrix.os == 'ubuntu-latest'
         run: |
-          sudo apt update
-          sudo apt install -y libssl-dev libboost-all-dev libmongocxx-dev libbsoncxx-dev catch2 cmake build-essential
+          docker build -f Docker/Dockerfile -t my-main-app .
+
+      - name: Build Docker for catch 2
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          docker build -f Docker/Dockerfile.catch2-builder -t catch2-builder .
+
+      - name: Run Docker
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          docker run -d --name main-app my-main-app
+
+      - name: Run Docker catch 2
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          docker run -d --name catch2-container catch2-builder
 
       - name: Build
+        if: matrix.os == 'macos-latest'
         run: cmake -S . -B build
 
       - name: Compile
+        if: matrix.os == 'macos-latest'
         run: cmake --build build --config Release
+

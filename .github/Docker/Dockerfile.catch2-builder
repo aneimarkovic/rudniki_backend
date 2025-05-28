@@ -1,0 +1,22 @@
+FROM ubuntu:22.04 AS catch2-builder-stage
+
+RUN apt-get update && apt-get install -y \
+    git \
+    cmake \
+    build-essential \
+ && rm -rf /var/lib/apt/lists/*
+
+ARG CATCH2_VERSION=v3.8.1
+WORKDIR /tmp
+RUN git clone --depth 1 --branch ${CATCH2_VERSION} https://github.com/catchorg/Catch2.git catch2 \
+ && cd catch2 \
+ && cmake -B build -S . \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_INSTALL_PREFIX=/usr/local \
+    -DCATCH_ENABLE_INSTALL=ON \
+ && cmake --build build --parallel $(nproc) \
+ && cmake --install build \
+ && cd /tmp \
+ && rm -rf catch2
+
+CMD ["echo", "Catch2 built and installed in /usr/local"]
