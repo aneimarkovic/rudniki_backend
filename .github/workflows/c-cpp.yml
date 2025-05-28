@@ -31,12 +31,12 @@ jobs:
       - name: Build Docker
         if: matrix.os == 'ubuntu-latest'
         run: |
-          docker build -f .github/workflow/Docker/Dockerfile -t rudniki_app .
+          docker build -f .github/Docker/Dockerfile -t rudniki_app .
 
       - name: Build Docker for catch 2
         if: matrix.os == 'ubuntu-latest'
         run: |
-          docker build -f .github/workflow/Docker/Dockerfile.catch2-builder -t catch2-builder .
+          docker build -f .github/Docker/Dockerfile.catch2-builder -t catch2-builder .
 
       - name: Run Docker
         if: matrix.os == 'ubuntu-latest'
