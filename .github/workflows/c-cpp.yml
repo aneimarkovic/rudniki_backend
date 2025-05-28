@@ -76,15 +76,6 @@ jobs:
             push: true
             tags: ${{ secrets.DOCKER_HUB_NAME }}/rudniki_app:catch2
 
-        - name: Build and push Docker frontend
-          id: push_frontend
-          uses: docker/build-push-action@v4
-          with:
-            context: .github/Docker
-            file: .github/Docker/DockerfileFrontend
-            push: true
-            tags: ${{ secrets.DOCKER_HUB_NAME }}/rudniki_app:frontend
-
         - name: Build and push Docker backend
           id: push_backend
           uses: docker/build-push-action@v4
