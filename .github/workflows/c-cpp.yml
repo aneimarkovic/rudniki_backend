@@ -68,7 +68,7 @@ jobs:
             password: ${{ secrets.DOCKER_HUB_PASSWORD }}
 
         - name: Build and push Docker image
-          id: push
+          id: push_catch
           uses: docker/build-push-action@v4
           with:
             context: .github/Docker
@@ -77,7 +77,7 @@ jobs:
             tags: ${{ secrets.DOCKER_HUB_NAME }}/rudniki_app:catch2
 
         - name: Build and push Docker frontend
-          id: push
+          id: push_frontend
           uses: docker/build-push-action@v4
           with:
             context: .github/Docker
@@ -86,7 +86,7 @@ jobs:
             tags: ${{ secrets.DOCKER_HUB_NAME }}/rudniki_app:frontend
 
         - name: Build and push Docker backend
-          id: push
+          id: push_backend
           uses: docker/build-push-action@v4
           with:
             context: .github/Docker
