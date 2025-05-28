@@ -74,7 +74,7 @@ jobs:
             context: .github/Docker
             file: .github/Docker/Dockerfile.catch2-builder
             push: true
-            tags: ${{ secrets.DOCKER_HUB_NAME }}/rudniki_app:catch2
+            tags: catch2-image:v3.6.0
 
         - name: Build and push Docker backend
           id: push_backend
