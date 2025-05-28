@@ -26,7 +26,7 @@ jobs:
 
       - name: Docker version če je sploh nameščen
         if: matrix.os == 'ubuntu-latest'
-        run: docker --version
+        run: ls -la
 
       - name: Build Docker
         if: matrix.os == 'ubuntu-latest'
