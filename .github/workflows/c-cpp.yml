@@ -56,3 +56,23 @@ jobs:
         if: matrix.os == 'macos-latest'
         run: cmake --build build --config Release
 
+  uploadDocker:
+    runs-on: ubuntu-latest
+    steps:
+        - uses: actions/checkout@v4
+
+        - name: Push to DockerHub
+          uses: docker/login-action@v2
+          with:
+            username: ${{ secrets.DOCKER_HUB_NAME }}
+            password: ${{ secrets.DOCKER_HUB_PASSWORD }}
+
+        - name: Build and push Docker image
+          id: push
+          uses: docker/build-push-action@v4
+          with:
+            context: .github/Docker
+            file: Dockerfile.catch2-builder
+            push: true
+            tags: ${{ secrets.DOCKER_HUB_NAME }}/rudniki_app:latest
+
