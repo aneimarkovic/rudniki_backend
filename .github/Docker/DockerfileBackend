@@ -18,8 +18,10 @@ COPY --from=prebuilt_catch2 /usr/local /usr/local
 WORKDIR /app
 COPY . .
 
-RUN cmake -S . -B build -DCMAKE_BUILD_TYPE=Release \
- && cmake --build build --parallel $(nproc)
+RUN export LD_LIBRARY_PATH=/usr/local/lib && \
+        cmake -S . -B build -DCMAKE_BUILD_TYPE=Release && \
+        cmake --build build --parallel $(nproc)
+
 
 FROM ubuntu:22.04
 
