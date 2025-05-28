@@ -61,7 +61,7 @@ jobs:
     steps:
         - uses: actions/checkout@v4
 
-        - name: Push to DockerHub
+        - name: Push to DockerHub login
           uses: docker/login-action@v2
           with:
             username: ${{ secrets.DOCKER_HUB_NAME }}
@@ -74,5 +74,23 @@ jobs:
             context: .github/Docker
             file: .github/Docker/Dockerfile.catch2-builder
             push: true
-            tags: ${{ secrets.DOCKER_HUB_NAME }}/rudniki_app:latest
+            tags: ${{ secrets.DOCKER_HUB_NAME }}/rudniki_app:catch2
+
+        - name: Build and push Docker frontend
+          id: push
+          uses: docker/build-push-action@v4
+          with:
+            context: .github/Docker
+            file: .github/Docker/DockerfileFrontend
+            push: true
+            tags: ${{ secrets.DOCKER_HUB_NAME }}/rudniki_app:frontend
+
+        - name: Build and push Docker backend
+          id: push
+          uses: docker/build-push-action@v4
+          with:
+            context: .github/Docker
+            file: .github/Docker/DockerfileBackend
+            push: true
+            tags: ${{ secrets.DOCKER_HUB_NAME }}/rudniki_app:backend
 
