@@ -39,6 +39,7 @@ COPY --from=prebuilt_mongo_driver /usr/local/lib/libbsoncxx.so* /usr/local/lib/
 COPY --from=builder /usr/local/lib/libmongoc-1.0.so* /usr/local/lib/
 COPY --from=builder /usr/local/lib/libbson-1.0.so* /usr/local/lib/
 
+ARG LD_LIBRARY_PATH=""
 ENV LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
 
 EXPOSE 8080
