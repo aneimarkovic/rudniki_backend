@@ -67,7 +67,16 @@ jobs:
             username: ${{ secrets.DOCKER_HUB_NAME }}
             password: ${{ secrets.DOCKER_HUB_PASSWORD }}
 
-        - name: Build and push Docker image
+        - name: Build and push Docker image mongocxx
+          id: push_mongo
+          uses: docker/build-push-action@v4
+          with:
+            context: .github/Docker
+            file: .github/Docker/Dockerfile
+            push: true
+            tags: ${{ secrets.DOCKER_HUB_NAME }}/mongo-cxx-driver-image:r3.10.0
+
+        - name: Build and push Docker image catch2
           id: push_catch
           uses: docker/build-push-action@v4
           with:
