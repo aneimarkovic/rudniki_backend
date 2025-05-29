@@ -1,22 +1,102 @@
-FROM aneimarkovic/mongo-cxx-driver-image:r3.10.0 AS prebuilt_mongo_driver
-FROM aneimarkovic/catch2-image:v3.6.0 AS prebuilt_catch2
+# --- Stage 1: Build MongoDB C++ Driver ---
+FROM ubuntu:22.04 AS mongo-driver-builder-stage
+RUN sed -i 's/archive.ubuntu.com/azure.archive.ubuntu.com/g' /etc/apt/sources.list && \
+    sed -i 's/security.ubuntu.com/azure.archive.ubuntu.com/g' /etc/apt/sources.list && \
+    apt-get update && apt-get install -y \
+    git \
+    cmake \
+    build-essential \
+    libssl-dev \
+    python3 \
+ && rm -rf /var/lib/apt/lists/*
+ARG MONGO_CXX_DRIVER_VERSION=r3.10.0
+WORKDIR /tmp
+RUN git clone --depth 1 --branch ${MONGO_CXX_DRIVER_VERSION} https://github.com/mongodb/mongo-cxx-driver.git mongo-cxx-driver \
+ && cd mongo-cxx-driver \
+ && cmake -B build -S . \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_INSTALL_PREFIX=/usr/local \
+    -DCMAKE_CXX_STANDARD=20 \
+    -DBSONCXX_POLY_USE_MNMLSTC_STRING_VIEW=OFF \
+    -DBUILD_SHARED_LIBS=ON \
+    -DENABLE_TESTS=OFF \
+ && cmake --build build --parallel $(nproc) \
+ && cmake --install build \
+ && cd /tmp \
+ && rm -rf mongo-cxx-driver
 
+# --- Stage 2: Build Catch2 ---
+FROM ubuntu:22.04 AS catch2-builder-stage
+RUN sed -i 's/archive.ubuntu.com/azure.archive.ubuntu.com/g' /etc/apt/sources.list && \
+    sed -i 's/security.ubuntu.com/azure.archive.ubuntu.com/g' /etc/apt/sources.list && \
+    apt-get update && apt-get install -y \
+    git \
+    cmake \
+    build-essential \
+ && rm -rf /var/lib/apt/lists/*
+ARG CATCH2_VERSION=v3.6.0
+WORKDIR /tmp
+RUN git clone --depth 1 --branch ${CATCH2_VERSION} https://github.com/catchorg/Catch2.git catch2 \
+ && cd catch2 \
+ && cmake -B build -S . \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_INSTALL_PREFIX=/usr/local \
+    -DCATCH_BUILD_TESTING=OFF \
+    -DCATCH_ENABLE_INSTALL=ON \
+ && cmake --build build --parallel $(nproc) \
+ && cmake --install build \
+ && cd /tmp \
+ && rm -rf catch2
+
+# --- STAGE 3 (jwt-cpp-builder-stage) IS REMOVED because we use FetchContent ---
+
+# --- Stage 4: Main Application Builder ---
 FROM ubuntu:22.04 AS builder
-
-RUN apt-get update && apt-get install -y \
+RUN sed -i 's/archive.ubuntu.com/azure.archive.ubuntu.com/g' /etc/apt/sources.list && \
+    sed -i 's/security.ubuntu.com/azure.archive.ubuntu.com/g' /etc/apt/sources.list && \
+    apt-get update && apt-get install -y \
     cmake \
     build-essential \
     libssl-dev \
     python3 \
     libboost-dev \
     libboost-system-dev \
+    git \
  && rm -rf /var/lib/apt/lists/*
-
-COPY --from=prebuilt_mongo_driver /usr/local /usr/local
-COPY --from=prebuilt_catch2 /usr/local /usr/local
-
+COPY --from=mongo-driver-builder-stage /usr/local /usr/local
+COPY --from=catch2-builder-stage /usr/local /usr/local
 WORKDIR /app
 COPY . .
-
 RUN cmake -S . -B build -DCMAKE_BUILD_TYPE=Release \
- && cmake --build build --parallel $(nproc)
+    && cmake --build build --parallel $(nproc) \
+    && echo "=== Debug: Listing build directory contents ===" \
+    && ls -la build/ \
+    && echo "=== Debug: Listing build/src contents (if exists) ===" \
+    && ls -la build/src/ || echo "build/src directory not found" \
+    && echo "=== Debug: Full recursive listing of build directory ===" \
+    && find build/ -type f -executable \
+    && echo "=== End of debug output ==="
+
+# --- Stage 5: Final Runtime Image ---
+FROM ubuntu:22.04 AS final_app_stage
+RUN sed -i 's/archive.ubuntu.com/azure.archive.ubuntu.com/g' /etc/apt/sources.list && \
+    sed -i 's/security.ubuntu.com/azure.archive.ubuntu.com/g' /etc/apt/sources.list && \
+    apt-get update && apt-get install -y \
+    libssl3 \
+    libboost-system1.74.0 \
+ && rm -rf /var/lib/apt/lists/*
+WORKDIR /app
+COPY --from=builder /app/build/src/rudnik_app .
+COPY --from=mongo-driver-builder-stage /usr/local/lib/libmongocxx.so* /usr/local/lib/
+COPY --from=mongo-driver-builder-stage /usr/local/lib/libbsoncxx.so* /usr/local/lib/
+COPY --from=mongo-driver-builder-stage /usr/local/lib/libmongoc-1.0.so* /usr/local/lib/
+COPY --from=mongo-driver-builder-stage /usr/local/lib/libbson-1.0.so* /usr/local/lib/
+
+# Placeholder for libjwt-cpp.so - you will uncomment and adjust this
+# COPY --from=builder /app/build/_SOMEPATH_/libjwt-cpp.so* /usr/local/lib/
+RUN echo "INFO: Manually uncomment and adjust COPY for libjwt-cpp.so in final_app_stage based on 'find' output from builder stage"
+
+RUN ldconfig
+ENV LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
+EXPOSE 8080
+CMD ["./rudnik_app"]

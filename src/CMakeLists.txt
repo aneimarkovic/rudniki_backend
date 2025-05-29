@@ -1,6 +1,6 @@
 ﻿file(GLOB_RECURSE CORE_APP_SOURCES CONFIGURE_DEPENDS
-    "*.cpp"
-    "**/*.cpp"
+        "*.cpp"
+        "**/*.cpp"
 )
 
 
@@ -15,32 +15,33 @@ endif()
 message(STATUS "Datoteke, vključene v RudnikCore: ${CORE_APP_SOURCES}")
 
 add_library(RudnikCore STATIC
-    ${CORE_APP_SOURCES}
+        ${CORE_APP_SOURCES}
 )
 
 target_include_directories(RudnikCore PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/../includes
-    ${CMAKE_CURRENT_SOURCE_DIR}
+        ${CMAKE_CURRENT_SOURCE_DIR}/../includes
+        ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
 target_link_libraries(RudnikCore PUBLIC
-    Boost::system
-    ${MONGO_BSONCXX_LIBRARY}
-    ${MONGO_MONGOCXX_LIBRARY}
+        Boost::system
+        ${MONGO_BSONCXX_LIBRARY}
+        ${MONGO_MONGOCXX_LIBRARY}
+        jwt-cpp::jwt-cpp
 )
 
 
 if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${MAIN_APP_ENTRY_POINT_FILE}")
     add_executable(rudnik_app
-        ${MAIN_APP_ENTRY_POINT_FILE} # e.g., main.cpp
+            ${MAIN_APP_ENTRY_POINT_FILE} # e.g., main.cpp
     )
 
-if(WIN32)
+    if(WIN32)
         target_compile_definitions(rudnik_app PRIVATE _WIN32_WINNT=0x0A00)
     endif()
 
     target_link_libraries(rudnik_app PRIVATE
-        RudnikCore
+            RudnikCore
     )
 
     target_link_libraries(rudnik_app PRIVATE jwt-cpp::jwt-cpp)
@@ -49,8 +50,8 @@ if(WIN32)
     include_directories(rudnik_app PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../out/build/x64-debug/_deps/jwt-cpp-src/include")
 
     target_include_directories(rudnik_app PRIVATE
-        ${CMAKE_CURRENT_SOURCE_DIR}/../includes
-        ${CMAKE_CURRENT_SOURCE_DIR}
+            ${CMAKE_CURRENT_SOURCE_DIR}/../includes
+            ${CMAKE_CURRENT_SOURCE_DIR}
     )
 else()
     message(WARNING "Glavna .cpp datoteka aplikacije ('${MAIN_APP_ENTRY_POINT_FILE}') ni bila najdena v mapi 'src'. Izvršljiva datoteka 'rudnik_app' ne bo ustvarjena.")
