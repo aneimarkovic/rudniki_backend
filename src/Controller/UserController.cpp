@@ -32,3 +32,19 @@ void UserController::loginUser(const request &request, response &response, Route
 
     response.body() = jsonStr;
 }
+
+void UserController::getUser(const request &request, response &response, Router* r){
+    auto filters = bsoncxx::builder::basic::make_document(bsoncxx::builder::basic::kvp("_id", bsoncxx::oid{r->UrlArguments[0]}));
+
+    std::optional<bsoncxx::document::value> mineDoc = DatabaseHandler::fetchSingleDocument("users", filters);
+    if (mineDoc)
+    {
+        bsoncxx::document::view viewTemp = mineDoc->view();
+        std::string jsonStr = bsoncxx::to_json(viewTemp);
+        response.body() = jsonStr;
+    }
+    else
+    {
+        std::cout << "Neobstaja\n";
+    }
+}

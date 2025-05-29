@@ -21,6 +21,7 @@ public:
 
     bool saveUser(UserModel user);
     static void loginUser(const request &request, response &response, Router* r);
+    static void getUser(const request &request, response &response, Router* r);
 };
 
 #endif
