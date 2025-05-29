@@ -12,6 +12,7 @@
 #include <bsoncxx/builder/basic/array.hpp>
 
 #include <optional>
+#include <vector>
 
 class BordersModel{
 public:
