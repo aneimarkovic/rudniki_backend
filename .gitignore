@@ -7,6 +7,7 @@ CMakeFiles/
 cmake_install.cmake
 CTestTestfile.cmake
 Makefile
+cmake-build-debug/
 compile_commands.json
 libs/
 tools/

@@ -1,5 +1,0 @@
-if(EXISTS "/Users/aneimarkovic/Documents/Feri/Feri_2_letnik/Projektni_praktikum/rudnik/rudniki_backend/cmake-build-debug/test/RudnikAppTests-b12d07c_tests.cmake")
-  include("/Users/aneimarkovic/Documents/Feri/Feri_2_letnik/Projektni_praktikum/rudnik/rudniki_backend/cmake-build-debug/test/RudnikAppTests-b12d07c_tests.cmake")
-else()
-  add_test(RudnikAppTests_NOT_BUILT-b12d07c RudnikAppTests_NOT_BUILT-b12d07c)
-endif()
