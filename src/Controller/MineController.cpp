@@ -449,3 +449,18 @@ void MineController::getFilteredMines(const request &request, response &response
     temp += "}";
     response.body() += temp;
 }
+void MineController::getMineBasedOnOwner(const request &request, response &response, Router *r){
+    auto filters = bsoncxx::builder::basic::make_document(bsoncxx::builder::basic::kvp("ownerId", bsoncxx::oid{r->UrlArguments[0]}));
+
+    std::optional<bsoncxx::document::value> mineDoc = DatabaseHandler::fetchSingleDocument("minesTest", filters);
+    if (mineDoc)
+    {
+        bsoncxx::document::view viewTemp = mineDoc->view();
+        std::string jsonStr = bsoncxx::to_json(viewTemp);
+        response.body() = jsonStr;
+    }
+    else
+    {
+        std::cout << "Neobstaja\n";
+    }
+}

@@ -65,6 +65,7 @@ int main()
 
 //        User routes
         Router::createPostRoute("/user/", UserController::loginUser);
+        Router::createGetRoute("/user/mines/:id", MineController::getMineBasedOnOwner);
 
 //        DatabaseHandler::create2dsphereIndex("bordersTest", "geometry") ? std::cout << "OK\n" : std::cout << "NE OK\n";
         HttpServer server("127.0.0.1", "8080");
