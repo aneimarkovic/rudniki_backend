@@ -464,3 +464,30 @@ void MineController::getMineBasedOnOwner(const request &request, response &respo
         std::cout << "Neobstaja\n";
     }
 }
+
+void MineController::getAllMines(const request &request, response &response, Router* r){
+    mongocxx::pipeline pipeline;
+    pipeline.lookup(
+            bsoncxx::builder::stream::document{}
+                    << "from" << "bordersTest"
+                    << "localField" << "_id"
+                    << "foreignField" << "mineId"
+                    << "as" << "geometry"
+                    << bsoncxx::builder::stream::finalize
+    );
+
+    std::vector<bsoncxx::document::value> result = DatabaseHandler::fetchMultipleDocumentsAggregate("minesTest", pipeline);
+    std::string temp = "{";
+    int counter = 0;
+    for (bsoncxx::document::value& it : result)
+    {
+//      std::cout << bsoncxx::to_json(it) << std::endl;
+        temp += "\"" + std::to_string(counter) + "\":" + bsoncxx::to_json(it);
+        if(counter < result.size() - 1){
+            temp += ",";
+        }
+        counter++;
+    }
+    temp += "}";
+    response.body() += temp;
+}

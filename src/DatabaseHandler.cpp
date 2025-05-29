@@ -136,6 +136,27 @@ std::vector<bsoncxx::document::value> DatabaseHandler::fetchMultipleDocuments(co
         return {};
     }
 }
+
+std::vector<bsoncxx::document::value> DatabaseHandler::fetchMultipleDocumentsAggregate(const std::string &collectionName, const mongocxx::pipeline &pipeline){
+    std::vector<bsoncxx::document::value> documents;
+    try{
+        mongocxx::collection collection = DatabaseHandler::db[collectionName];
+
+        mongocxx::cursor cursor = collection.aggregate(pipeline);
+
+        for (bsoncxx::document::view doc_view : cursor)
+        {
+            documents.emplace_back(doc_view);
+        }
+
+        return documents;
+    }
+    catch (const std::exception &e)
+    {
+        std::cerr << "Splošna napaka pri branju več dokumentov iz zbirke (aggregate) '" << collectionName << "': " << e.what() << std::endl;
+        return {};
+    }
+}
 // Funkija zbriše dokument na podlagi filtrov
 bool DatabaseHandler::deleteDocument(const std::string &collectionName, bsoncxx::document::view filters)
 {
