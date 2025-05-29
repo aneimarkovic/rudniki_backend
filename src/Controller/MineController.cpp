@@ -289,11 +289,19 @@ void MineController::generateMineralsValue(const request &request, response &res
             "minesTest", opts, std::move(filterDoc)
     );
 
-    std::string temp;
+    std::string temp = "{";
+    int counter = 0;
     for(bsoncxx::document::value& it : mineralsDoc){
 //        std::cout << bsoncxx::to_json(it) << std::endl;
-        response.body() += bsoncxx::to_json(it);
+//        response.body() += bsoncxx::to_json(it);
+        temp += "\"" + std::to_string(counter) + "\":" + bsoncxx::to_json(it);
+        if(counter < results.size() - 1){
+            temp += ",";
+        }
+        counter++;
     }
+    temp += "}";
+    response.body() += temp;
 
 //    response.body() += temp;
 
@@ -345,4 +353,99 @@ void MineController::getScrapperMines(const request &request, response &response
 
      temp += "}";
     response.body() = temp;
+}
+
+void MineController::getFilteredMines(const request &request, response &response, Router* r){
+    bsoncxx::document::value document = bsoncxx::from_json(request.body());
+    bsoncxx::document::view view = document.view();
+
+    bsoncxx::builder::stream::document query;
+
+    bsoncxx::document::element mineType = view["type"];
+    if(mineType && mineType.type() != bsoncxx::type::k_null){
+        query << "type" << mineType.get_int32();
+    }
+
+    bsoncxx::document::element mineStatus = view["status"];
+    if(mineStatus && mineStatus.type() != bsoncxx::type::k_null){
+        query << "status" << mineStatus.get_int32();
+    }
+
+    bsoncxx::document::element minerals = view["minerals"];
+
+    if(minerals && minerals.type() != bsoncxx::type::k_array){
+        bsoncxx::document::view mineralsArr = minerals.get_array().value;
+
+        bsoncxx::builder::stream::array queryArr;
+        for(const bsoncxx::document::element& mineralElement : mineralsArr){
+            bsoncxx::document::view mineral = mineralElement.get_document().view();
+
+            bsoncxx::builder::stream::document mineralsQuery; //Znotraj glovnega
+
+            bsoncxx::document::element mineralName = view["name"];
+            if(mineralName.type() == bsoncxx::type::k_int32){
+                mineralsQuery << "name" << mineralName.get_int32();
+            }
+
+            bsoncxx::document::element minLowerBound = view["minLowerBound"];
+            bsoncxx::document::element minUpperBound = view["minUpperBound"];
+            if(minLowerBound.type() == bsoncxx::type::k_double || minUpperBound.type() == bsoncxx::type::k_double){
+                bsoncxx::builder::stream::document boundsDocument; //Za min pa max
+                if(minLowerBound && minLowerBound.type() != bsoncxx::type::k_null){
+                    boundsDocument << "$gte" << minLowerBound.get_double();
+                }
+                if(minUpperBound && minUpperBound.type() != bsoncxx::type::k_null){
+                    boundsDocument << "$lte" << minUpperBound.get_double();
+                }
+
+                mineralsQuery << "min" << boundsDocument;
+            }
+
+            bsoncxx::document::element maxLowerBound = view["maxLowerBound"];
+            bsoncxx::document::element maxUpperBound = view["maxUpperBound"];
+            if(maxLowerBound.type() == bsoncxx::type::k_double || maxUpperBound.type() == bsoncxx::type::k_double){
+                bsoncxx::builder::stream::document boundsDocument; //Za min pa max
+                if(maxLowerBound && maxLowerBound.type() != bsoncxx::type::k_null){
+                    boundsDocument << "$gte" << maxLowerBound.get_double();
+                }
+                if(maxUpperBound && maxUpperBound.type() != bsoncxx::type::k_null){
+                    boundsDocument << "$lte" << maxUpperBound.get_double();
+                }
+
+                mineralsQuery << "max" << boundsDocument;
+            }
+            bsoncxx::document::element mineralGrade = view["grade"];
+            if(mineralGrade.type() == bsoncxx::type::k_int32){
+                mineralsQuery << "grade" << mineralGrade.get_int32();
+            }
+
+            //Če ni empty add
+            if(!mineralsQuery.view().empty()){
+                bsoncxx::builder::stream::document mineralsDocument;
+                mineralsDocument << "minerals" << bsoncxx::builder::stream::open_document << "$elemMatch" << mineralsQuery <<  bsoncxx::builder::stream::close_document;
+                queryArr << mineralsDocument;
+            }
+        }
+
+        if(!queryArr.view().empty()){
+            query << "$or" << queryArr;
+        }
+    }
+
+    std::vector<bsoncxx::document::value>
+            results = DatabaseHandler::fetchMultipleDocuments("minesTest", query.view());
+
+    std::string temp = "{";
+    int counter = 0;
+    for (bsoncxx::document::value& it : results)
+    {
+//      std::cout << bsoncxx::to_json(it) << std::endl;
+        temp += "\"" + std::to_string(counter) + "\":" + bsoncxx::to_json(it);
+        if(counter < results.size() - 1){
+            temp += ",";
+        }
+        counter++;
+    }
+    temp += "}";
+    response.body() += temp;
 }

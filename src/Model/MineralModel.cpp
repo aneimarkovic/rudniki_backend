@@ -1,10 +1,10 @@
 //  Created by Anei Markovič 22.5.2025
 #include "Model/MineralModel.hpp"
 
-MineralModel::MineralModel(std::string name, double min, double max, MineralGrade grade) : name(name), min(min), max(max), grade(grade) {}
+MineralModel::MineralModel(MineralName name, double min, double max, MineralGrade grade) : name(name), min(min), max(max), grade(grade) {}
 MineralModel::MineralModel()
 {
-    this->name = "";
+    this->name = MineralName::UNDEFINED;
     this->min = 0.00;
     this->max = 0.00;
     this->grade = MineralGrade::UNDEFINED;
@@ -16,7 +16,7 @@ void MineralModel::getFromBsonDocument(const bsoncxx::document::view &docView)
 {
     try
     {
-        this->name = extractStringFromBSON(docView, "name");
+        this->name = static_cast<MineralName>(extractIntFromBSON(docView, "name"));
         this->min = extractDoubleFromBSON(docView, "min");
         this->max = extractDoubleFromBSON(docView, "max");
         this->grade = static_cast<MineralGrade>(extractIntFromBSON(docView, "grade"));
@@ -130,7 +130,7 @@ int MineralModel::extractIntFromBSON(const bsoncxx::document::view &docView, con
 bsoncxx::document::value MineralModel::convertToBsonDocument()
 {
     bsoncxx::builder::basic::document builder{};
-    builder.append(bsoncxx::builder::basic::kvp("name", this->name));
+    builder.append(bsoncxx::builder::basic::kvp("name",  static_cast<int>(this->name)));
     builder.append(bsoncxx::builder::basic::kvp("min", this->min));
     builder.append(bsoncxx::builder::basic::kvp("max", this->max));
     builder.append(bsoncxx::builder::basic::kvp("grade", static_cast<int>(this->grade)));

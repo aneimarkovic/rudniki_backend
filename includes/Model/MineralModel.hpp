@@ -25,6 +25,7 @@ enum class MineralGrade
 };
 
 enum class MineralName{
+    UNDEFINED,
     CLAY,
     GOLD,
     GRAVEL,
@@ -79,12 +80,12 @@ enum class MineralName{
 class MineralModel
 {
 private:
-    std::string name;
+    MineralName name;
     double min;
     double max;
     MineralGrade grade;
 public:
-    MineralModel(std::string name, double min, double max, MineralGrade grade);
+    MineralModel(MineralName name, double min, double max, MineralGrade grade);
     MineralModel();
     
     void getFromBsonDocument(const bsoncxx::document::view& docView);
