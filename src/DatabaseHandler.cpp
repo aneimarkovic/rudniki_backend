@@ -125,6 +125,7 @@ std::vector<bsoncxx::document::value> DatabaseHandler::fetchMultipleDocuments(co
 
         for (bsoncxx::document::view doc_view : cursor)
         {
+//            std::cout << bsoncxx::to_json(doc_view) << std::endl;
             documents.emplace_back(doc_view);
         }
 

@@ -491,3 +491,35 @@ void MineController::getAllMines(const request &request, response &response, Rou
     temp += "}";
     response.body() += temp;
 }
+
+void MineController::searchBar(const request &request, response &response, Router* r){
+    bsoncxx::builder::stream::document builder = bsoncxx::builder::stream::document{};
+    builder << "name"
+    << bsoncxx::builder::stream::open_document
+    << "$regex" << r->UrlArguments[0] << "$options" << "i"
+    << bsoncxx::builder::stream::close_document;
+
+    bsoncxx::document::value filters = builder.extract();
+
+    std::cout << bsoncxx::to_json(filters.view()) << std::endl;
+
+    std::vector<bsoncxx::document::value> result =  DatabaseHandler::fetchMultipleDocuments("minesTest", filters.view());
+
+    if(!result.empty()){
+        std::string temp = "{";
+        int counter = 0;
+        for (bsoncxx::document::value& it : result)
+        {
+//      std::cout << bsoncxx::to_json(it) << std::endl;
+            temp += "\"" + std::to_string(counter) + "\":" + bsoncxx::to_json(it);
+            if(counter < result.size() - 1){
+                temp += ",";
+            }
+            counter++;
+        }
+        temp += "}";
+        response.body() += temp;
+    } else{
+        response.body() = "Ni takih rudnikov";
+    }
+}

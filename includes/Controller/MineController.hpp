@@ -25,6 +25,7 @@ public:
     static void getFilteredMines(const request &request, response &response, Router* r);
     static void getMineBasedOnOwner(const request &request, response &response, Router *r);
     static void getAllMines(const request &request, response &response, Router *r);
+    static void searchBar(const request &request, response &response, Router* r);
 };
 
 #endif
