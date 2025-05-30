@@ -11,19 +11,21 @@ Preden nadaljujete, se prepričajte, da imate na svojem sistemu nameščeno nasl
 3.  **Knjižnica OpenSSL**: Za podporo SSL/TLS.
 4.  **Knjižnica Boost**: Potrebne so komponente `system`, `beast` in `asio`.
 5.  **MongoDB C++ gonilnik (mongocxx)**.
-6.  **Catch2 (verzija 3.x)**: Testno ogrodje.
-7.  **Internetna povezava**: Morda potrebna za prenos nekaterih odvisnosti s strani upraviteljev paketov.
+6.  **Knjižnica libsodium**: Za varno zgoščevanje gesel (password hashing).
+7.  **Catch2 (verzija 3.x)**: Testno ogrodje.
+8.  **Internetna povezava**: Morda potrebna za prenos nekaterih odvisnosti s strani upraviteljev paketov.
 
-### Namestitev odvisnosti (OpenSSL, Boost, MongoDB C++ gonilnik in Catch2)
+### Namestitev odvisnosti (OpenSSL, Boost, MongoDB C++ gonilnik, libsodium in Catch2)
 
 **macOS (z uporabo Homebrew):**
 
-Odprite terminal in zaženite naslednje ukaze za namestitev knjižnic OpenSSL, Boost, MongoDB C++ gonilnika in Catch2:
+Odprite terminal in zaženite naslednje ukaze za namestitev knjižnic OpenSSL, Boost, MongoDB C++ gonilnika, libsodium in Catch2:
 
 ```bash
 brew install openssl
 brew install boost
 brew install mongo-cxx-driver
+brew install libsodium
 brew install catch2
 ```
 
@@ -49,10 +51,10 @@ Priporočamo uporabo `vcpkg` za upravljanje C++ knjižnic na Windowsu.
 
 3.  Namestite potrebne knjižnice z naslednjimi ukazi v PowerShellu ali ukazni vrstici (v mapi, kjer je `vcpkg`):
 ```powershell
-    .\vcpkg install openssl boost-system boost-beast boost-asio mongo-cxx-driver catch2
+    .\vcpkg install openssl boost-system boost-beast boost-asio mongo-cxx-driver libsodium catch2
 ```
 Če uporabljate 64-bitno gradnjo (kar je običajno), boste morda želeli specificirati arhitekturo, npr.:
-`.\vcpkg install openssl:x64-windows boost-system:x64-windows boost-beast:x64-windows boost-asio:x64-windows mongo-cxx-driver:x64-windows catch2:x64-windows`
+`.\vcpkg install openssl:x64-windows boost-system:x64-windows boost-beast:x64-windows boost-asio:x64-windows mongo-cxx-driver:x64-windows libsodium:x64-windows catch2:x64-windows`
 
 **Linux (primer za Debian/Ubuntu):**
 
@@ -60,9 +62,9 @@ Za distribucije, ki temeljijo na Debianu (kot je Ubuntu), lahko knjižnice names
 
 ```bash
 sudo apt update
-sudo apt install libssl-dev libboost-system-dev libboost-beast-dev libboost-asio-dev libmongocxx-dev libbsoncxx-dev catch2
+sudo apt install libssl-dev libboost-system-dev libboost-beast-dev libboost-asio-dev libmongocxx-dev libbsoncxx-dev libsodium-dev catch2
 ```
-Za druge distribucije Linuxa uporabite ustrezen upravitelj paketov (npr. `openssl-devel` ali `libopenssl-devel` za OpenSSL na sistemih, ki temeljijo na RPM, kot sta Fedora ali CentOS, in podobno za druge pakete). Ime paketa za Catch2 se lahko razlikuje (npr. `catch2-devel`).
+Za druge distribucije Linuxa uporabite ustrezen upravitelj paketov (npr. `openssl-devel` ali `libopenssl-devel` za OpenSSL na sistemih, ki temeljijo na RPM, kot sta Fedora ali CentOS, `libsodium-devel` za libsodium, in podobno za druge pakete). Ime paketa za Catch2 se lahko razlikuje (npr. `catch2-devel`).
 
 ## Postopek prevajanja in zagona s CMake
 
@@ -86,7 +88,7 @@ Za druge distribucije Linuxa uporabite ustrezen upravitelj paketov (npr. `openss
     *   **Če na macOS CMake ne najde knjižnic, nameščenih preko Homebrew v nestandardne poti:**
         Lahko poskusite z:
         ```bash
-        cmake -S . -B build -DCMAKE_PREFIX_PATH="$(brew --prefix openssl);$(brew --prefix boost);$(brew --prefix mongo-cxx-driver);$(brew --prefix catch2)"
+        cmake -S . -B build -DCMAKE_PREFIX_PATH="$(brew --prefix openssl);$(brew --prefix boost);$(brew --prefix mongo-cxx-driver);$(brew --prefix libsodium);$(brew --prefix catch2)"
         ```
         (Prilagodite poti, če je potrebno, in dodajte druge knjižnice, če jih CMake ne najde.)
 
@@ -149,5 +151,5 @@ Po uspešnem prevajanju lahko teste zaženete na enega od naslednjih načinov iz
       ```
     * Na Windows:
       ```powershell
-      .\build\test\Debug\rudniki_tests.exe
+      .\build/test/Debug/rudniki_tests.exe
       ```

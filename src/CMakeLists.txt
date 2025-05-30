@@ -30,6 +30,7 @@ target_link_libraries(RudnikCore PUBLIC
         jwt-cpp::jwt-cpp
 )
 
+target_compile_definitions(RudnikCore PRIVATE NOMINMAX)
 
 if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${MAIN_APP_ENTRY_POINT_FILE}")
     add_executable(rudnik_app

@@ -10,6 +10,7 @@ RUN apt-get update && apt-get install -y \
     python3 \
     libboost-dev \
     libboost-system-dev \
+    libsodium-dev
  && rm -rf /var/lib/apt/lists/*
 
 COPY --from=prebuilt_mongo_driver /usr/local /usr/local

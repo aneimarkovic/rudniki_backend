@@ -3,6 +3,8 @@
 #include <iostream>
 #include <chrono>
 #include <ctime>
+#include <sodium.h> 
+
 #include "HttpServer.hpp"
 #include "DatabaseHandler.hpp"
 
@@ -47,6 +49,11 @@ int main()
 {
     try
     {
+
+        if (sodium_init() < 0) {
+            throw std::runtime_error("Failed to initialize libsodium!");
+        }
+
 //         testDatabaseInsert();
 //         getAndPrintAllScrapperData();
 
@@ -67,6 +74,8 @@ int main()
 
 //        User routes
         Router::createPostRoute("/user/", UserController::loginUser);
+        Router::createPostRoute("/user/save", UserController::saveUser);
+
         Router::createGetRoute("/user/mines/:id", MineController::getMineBasedOnOwner);
         Router::createGetRoute("/user/:id", UserController::getUser);
 
