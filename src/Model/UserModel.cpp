@@ -3,6 +3,7 @@
 #include "DatabaseHandler.hpp"
 
 #include <iostream>
+#include <sodium.h>
 
 #include <bsoncxx/document/view.hpp>
 #include <bsoncxx/document/view.hpp>
@@ -179,4 +180,46 @@ void UserModel::getFromBsonDocumentLogin(const bsoncxx::document::view &docView)
     {
         std::cerr << "BSON Deserialization Error for UserModel in LOGIN: " << e.what() << std::endl;
     }
+}
+
+
+/*
+    Trenutno geslo zakodira po algoritmu Argon2id
+*/
+void UserModel::hashPassword()
+{
+    char hashed_password_cstr[crypto_pwhash_STRBYTES];
+
+    if (crypto_pwhash_str_alg(
+        hashed_password_cstr,
+        this->password.c_str(),
+        this->password.length(),
+        crypto_pwhash_OPSLIMIT_INTERACTIVE, 
+        crypto_pwhash_MEMLIMIT_INTERACTIVE, 
+        crypto_pwhash_ALG_DEFAULT           
+    ) != 0) {
+        throw std::runtime_error("Failed to hash password.");
+    }
+
+    this->password = std::string(hashed_password_cstr);
+}
+
+/*
+    Vzame plain password kot input in ga primerja z zakodiranim
+*/
+bool UserModel::verifyPassword(const std::string& plainPassword, const std::string& hashedPassword)
+{
+    if (plainPassword.empty() || hashedPassword.empty()) {
+        return false; 
+    }
+
+    if (crypto_pwhash_str_verify(
+        hashedPassword.c_str(),
+        plainPassword.c_str(),
+        plainPassword.length()
+    ) == 0) {
+        return true; 
+    }
+
+    return false; 
 }

@@ -104,5 +104,7 @@ fetchcontent_declare(jwt-cpp
 set(JWT_BUILD_EXAMPLES OFF CACHE BOOL "disable building examples" FORCE)
 fetchcontent_makeavailable(jwt-cpp)
 
+find_package(unofficial-sodium CONFIG REQUIRED)
+
 enable_testing()
 add_subdirectory(test)

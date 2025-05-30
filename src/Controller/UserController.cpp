@@ -5,9 +5,9 @@
 /*
 	Funckija pokliče metode DatabaseHandler in shrani uporabnika
 */
-bool UserController::saveUser(UserModel user)
+void UserController::saveUser(const request& request, response& response, Router* router)
 {
-	return DatabaseHandler::insertDocument("users", user.convertToBsonDocument());
+	
 }
 
 //Funkcija, ki prijavi uporabnika in vrne njegov id
@@ -20,7 +20,7 @@ void UserController::loginUser(const request &request, response &response, Route
 
 //    std::cout << temp.toString() << std::endl;
 
-
+    temp.hashPassword();
     std::optional<bsoncxx::oid> id = temp.authUserData();
     std::string status = "Napaka ob prijavi!";
     if(id){
@@ -36,10 +36,10 @@ void UserController::loginUser(const request &request, response &response, Route
 void UserController::getUser(const request &request, response &response, Router* r){
     auto filters = bsoncxx::builder::basic::make_document(bsoncxx::builder::basic::kvp("_id", bsoncxx::oid{r->UrlArguments[0]}));
 
-    std::optional<bsoncxx::document::value> mineDoc = DatabaseHandler::fetchSingleDocument("users", filters);
-    if (mineDoc)
+    std::optional<bsoncxx::document::value> userDoc = DatabaseHandler::fetchSingleDocument("users", filters);
+    if (userDoc)
     {
-        bsoncxx::document::view viewTemp = mineDoc->view();
+        bsoncxx::document::view viewTemp = userDoc->view();
         std::string jsonStr = bsoncxx::to_json(viewTemp);
         response.body() = jsonStr;
     }
