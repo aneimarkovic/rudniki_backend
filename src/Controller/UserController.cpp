@@ -7,7 +7,20 @@
 */
 void UserController::saveUser(const request& request, response& response, Router* router)
 {
-	
+    bsoncxx::document::value document = bsoncxx::from_json(request.body());
+    bsoncxx::document::view view = document.view();
+
+    UserModel user;
+    user.hashPassword();
+
+    if (DatabaseHandler::insertDocument("users", user.convertToBsonDocument()))
+    {
+        response.body() = "Uporabnik uspešno dodan.";
+    }
+    else
+    {
+        response.body() = "Napaka pri dodajanju uporabnika!";
+    }
 }
 
 //Funkcija, ki prijavi uporabnika in vrne njegov id
