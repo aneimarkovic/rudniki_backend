@@ -2,10 +2,10 @@ cmake_minimum_required(VERSION 3.16)
 project(rudniki-backend LANGUAGES CXX)
 
 if(POLICY CMP0167)
-  cmake_policy(SET CMP0167 NEW)
+    cmake_policy(SET CMP0167 NEW)
 endif()
 if(POLICY CMP0148)
-  cmake_policy(SET CMP0148 NEW)
+    cmake_policy(SET CMP0148 NEW)
 endif()
 
 set(CMAKE_CXX_STANDARD 20)
@@ -16,9 +16,9 @@ SET(CMAKE_FIND_PACKAGE_SORT_ORDER NATURAL)
 SET(CMAKE_FIND_PACKAGE_SORT_DIRECTION DEC)
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
-    find_package(Boost 1.74.0 QUIET COMPONENTS system) 
+    find_package(Boost 1.74.0 QUIET COMPONENTS system)
 else()
-    find_package(Boost 1.88 QUIET COMPONENTS system) 
+    find_package(Boost 1.88 QUIET COMPONENTS system)
 endif()
 
 if(NOT Boost_FOUND)
@@ -79,7 +79,7 @@ if(NOT Catch2_FOUND)
     message(FATAL_ERROR "System Catch2 v3 (or newer) not found. Please install Catch2 and ensure it can be found by CMake. Refer to the README.md for installation instructions for your platform.")
 else()
     message(STATUS "Found system Catch2: ${Catch2_VERSION}")
-    
+
     if(NOT TARGET Catch2::Catch2WithMain AND NOT TARGET Catch2::Catch2)
         message(FATAL_ERROR "Catch2 was found, but neither Catch2::Catch2WithMain nor Catch2::Catch2 CMake target is available. Your Catch2 installation might be incomplete or not correctly configured for CMake. Please check your Catch2 installation.")
     elseif(NOT TARGET Catch2::Catch2WithMain)
@@ -97,14 +97,20 @@ else()
 endif()
 
 include(FetchContent)
-fetchcontent_declare(jwt-cpp 
-    GIT_REPOSITORY https://github.com/Thalhammer/jwt-cpp.git
-    GIT_TAG 08bcf77a687fb06e34138e9e9fa12a4ecbe12332 # v0.7.0 release
+fetchcontent_declare(jwt-cpp
+        GIT_REPOSITORY https://github.com/Thalhammer/jwt-cpp.git
+        GIT_TAG 08bcf77a687fb06e34138e9e9fa12a4ecbe12332 # v0.7.0 release
 )
 set(JWT_BUILD_EXAMPLES OFF CACHE BOOL "disable building examples" FORCE)
 fetchcontent_makeavailable(jwt-cpp)
 
-find_package(unofficial-sodium CONFIG REQUIRED)
+FetchContent_Declare(
+        unofficial_sodium
+        GIT_REPOSITORY https://github.com/robinlinden/libsodium-cmake.git
+        GIT_TAG e5b985ad0dd235d8c4307ea3a385b45e76c74c6a
+)
+
+FetchContent_MakeAvailable(unofficial_sodium)
 
 enable_testing()
 add_subdirectory(test)

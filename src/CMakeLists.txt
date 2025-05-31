@@ -28,6 +28,7 @@ target_link_libraries(RudnikCore PUBLIC
         ${MONGO_BSONCXX_LIBRARY}
         ${MONGO_MONGOCXX_LIBRARY}
         jwt-cpp::jwt-cpp
+        sodium
 )
 
 target_compile_definitions(RudnikCore PRIVATE NOMINMAX)
