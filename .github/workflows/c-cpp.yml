@@ -94,3 +94,15 @@ jobs:
             push: true
             tags: ${{ secrets.DOCKER_HUB_NAME }}/rudniki_app:backend
 
+
+  resetServer:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Restart and update azure server
+        run: |
+          curl -k -v -X POST \
+          -H "Content-Type: application/json" \
+          -H "X-Webhook-Secret: ${{ secrets.WEEBHOOK_SECRET }}" \
+          -d "{}" \
+          https://20.224.154.166/hooks/deploy-rudniki
