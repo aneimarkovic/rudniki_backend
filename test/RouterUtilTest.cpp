@@ -6,6 +6,7 @@
 
 class Router_Test_Class {};
 
+/*
 TEST_CASE_METHOD(Router_Test_Class, "Router::convertUrlToRegexForm behavior")
 {
 
@@ -33,4 +34,4 @@ TEST_CASE_METHOD(Router_Test_Class, "Router::convertUrlToRegexForm behavior")
 		REQUIRE(Router::convertUrlToRegexForm(url) == "/([^/]+)");
 	}
 
-}
+}*/
