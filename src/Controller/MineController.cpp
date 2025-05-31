@@ -501,7 +501,7 @@ void MineController::searchBar(const request &request, response &response, Route
 
     bsoncxx::document::value filters = builder.extract();
 
-    std::cout << bsoncxx::to_json(filters.view()) << std::endl;
+//    std::cout << bsoncxx::to_json(filters.view()) << std::endl;
 
     std::vector<bsoncxx::document::value> result =  DatabaseHandler::fetchMultipleDocuments("minesTest", filters.view());
 
@@ -521,5 +521,38 @@ void MineController::searchBar(const request &request, response &response, Route
         response.body() += temp;
     } else{
         response.body() = "Ni takih rudnikov!";
+    }
+}
+
+void MineController::getMinesByYear(const request &request, response &response, Router* r){
+    bsoncxx::document::value document = bsoncxx::from_json(request.body());
+    bsoncxx::document::view view = document.view();
+
+    bsoncxx::builder::stream::document query;
+    bsoncxx::document::element from = view["from"];
+    bsoncxx::document::element to = view["to"];
+
+    query << "excavationStart" << bsoncxx::builder::stream::open_document
+          << "$gte" << from.get_int32().value
+          << "$lte" << to.get_int32().value
+          << bsoncxx::builder::stream::close_document;
+
+    std::vector<bsoncxx::document::value> result =  DatabaseHandler::fetchMultipleDocuments("mines", query.view());
+
+    if(!result.empty()){
+        std::string temp = "{";
+        int counter = 0;
+        for (bsoncxx::document::value& it : result)
+        {
+            temp += "\"" + std::to_string(counter) + "\":" + bsoncxx::to_json(it);
+            if(counter < result.size() - 1){
+                temp += ",";
+            }
+            counter++;
+        }
+        temp += "}";
+        response.body() += temp;
+    } else{
+        response.body() = "{\"message\": \"Ni rudnikov v tem časovnem intervalu!\"}";
     }
 }
