@@ -4,6 +4,9 @@
 #include <functional>
 #include <regex>
 
+#include <mutex>          
+#include <shared_mutex>
+
 #include <boost/beast/http.hpp>
 class Router;
 // Pripravi vse nove tipe, ki jih rabimo
@@ -26,15 +29,14 @@ class Router
 
 	friend class Router_Test_Class;
 
-public:
+private:
 	// Router spomin za narejene route
 	static std::map<std::string, routeFunction> routesPost;
 	static std::map<std::string, routeFunction> routesGet;
 	static std::map<std::string, routeFunction> routesPut;
 	static std::map<std::string, routeFunction> routesDelete;
 
-	// Vector za shranjevanje URL argumentov. Primer /:id shrani id 
-	std::vector<std::string> UrlArguments;
+	static std::shared_mutex routesMutex;
 
 	static std::vector<std::string> getParametersFromUrl(const std::string& URL, const std::regex& urlRegex);
 	static std::string convertUrlToRegexForm(const std::string& originalUrl);
@@ -43,7 +45,11 @@ public:
 	// Univerzalna funkcija, da se izogibamo ponavljanju znotraj create funkcij
 	static void createRoute(requestType type, std::string& URL, routeFunction function);
 
+
 public:
+
+	// Vector za shranjevanje URL argumentov. Primer /:id shrani id 
+	std::vector<std::string> UrlArguments;
 
 	// Funkcije za dodajanje novih poti
 	static void createGetRoute(std::string URL, routeFunction function) ;
