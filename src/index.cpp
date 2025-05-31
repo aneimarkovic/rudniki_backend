@@ -72,6 +72,7 @@ int main()
         Router::createGetRoute("/:id", MineController::searchBar);
 
         Router::createDeleteRoute("/mine/delete/:id", MineController::deleteMine);
+        Router::createDeleteRoute("/mine/deleteWorker", MineController::deleteWorker);
 
 //        User routes
         Router::createPostRoute("/user/", UserController::loginUser);
