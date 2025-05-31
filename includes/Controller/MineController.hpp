@@ -26,6 +26,8 @@ public:
     static void getMineBasedOnOwner(const request &request, response &response, Router *r);
     static void getAllMines(const request &request, response &response, Router *r);
     static void searchBar(const request &request, response &response, Router* r);
+    static void getMinesByYear(const request &request, response &response, Router* r);
+
 };
 
 #endif
