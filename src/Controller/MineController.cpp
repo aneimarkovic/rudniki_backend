@@ -702,7 +702,6 @@ void MineController::updateMine(const request &request, response &response, Rout
     }
 
     bsoncxx::builder::stream::document updateSet;
-
     updateSet << "$set" << updateQuery.view();
 
     std::string resString = (DatabaseHandler::updateOneItem("minesTest", query, updateSet) ? ("Rudnik uspešno posodobljen!") : ("Pri posodabljanju rudnika je prišlo do napake!"));

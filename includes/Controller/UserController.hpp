@@ -22,6 +22,7 @@ public:
     static void saveUser(const request& request, response& response, Router* router);
     static void loginUser(const request &request, response &response, Router* r);
     static void getUser(const request &request, response &response, Router* r);
+    static void updateUser(const request &request, response &response, Router* r);
 };
 
 #endif

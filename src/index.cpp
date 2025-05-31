@@ -82,6 +82,8 @@ int main()
         Router::createPostRoute("/user/", UserController::loginUser);
         Router::createPostRoute("/user/save", UserController::saveUser);
 
+        Router::createPutRoute("/user/update", UserController::updateUser);
+
         Router::createGetRoute("/user/mines/:id", MineController::getMineBasedOnOwner);
         Router::createGetRoute("/user/:id", UserController::getUser);
 
