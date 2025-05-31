@@ -29,6 +29,7 @@ public:
     static void getMinesByYear(const request &request, response &response, Router* r);
     static void deleteWorker(const request &request, response &response, Router* r);
     static void deleteInfrastructure(const request &request, response &response, Router* r);
+    static void deleteMineral(const request &request, response &response, Router* r);
 };
 
 #endif

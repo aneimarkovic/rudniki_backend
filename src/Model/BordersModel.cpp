@@ -11,6 +11,10 @@ void BordersModel::setMineId(bsoncxx::oid newId){
     this->mineId = newId;
 }
 
+std::vector<PointModel> BordersModel::getPoints(){
+    return this->points;
+}
+
 void BordersModel::getFromBsonDocument(const bsoncxx::document::view& docView){
     auto tempID = docView["_id"];
     if (tempID && tempID.type() == bsoncxx::type::k_oid)

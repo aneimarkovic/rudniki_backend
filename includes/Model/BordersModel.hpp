@@ -23,6 +23,7 @@ public:
     BordersModel();
 
     void setMineId(bsoncxx::oid newId);
+    std::vector<PointModel> getPoints();
 
     void getFromBsonDocument(const bsoncxx::document::view& docView);
     double extractDoubleFromBSON(const bsoncxx::document::view &docView, const char *key);
