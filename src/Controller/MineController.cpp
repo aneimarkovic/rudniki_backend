@@ -591,3 +591,38 @@ void MineController::deleteWorker(const request &request, response &response, Ro
     bsoncxx::document::value documentTemp = bsoncxx::builder::stream::document{} << "message" << resString << bsoncxx::builder::stream::finalize;
     response.body() = bsoncxx::to_json(documentTemp.view());
 }
+
+void MineController::deleteInfrastructure(const request &request, response &response, Router* r){
+    bsoncxx::document::value document = bsoncxx::from_json(request.body());
+    bsoncxx::document::view view = document.view();
+
+    bsoncxx::builder::stream::document query;
+    bsoncxx::document::element id = view["id"];
+    auto stringView = id.get_string().value;
+    std::string str_val(stringView.data(), stringView.size());
+    bsoncxx::oid mineID = bsoncxx::oid(str_val);
+    query << "_id" << mineID;
+
+    bsoncxx::builder::stream::array insideArr;
+    bsoncxx::document::element infrastructure = view["infrastructure"];
+    bsoncxx::document::view infrastructureArr = infrastructure.get_array().value;
+    for(const bsoncxx::document::element& worker : infrastructureArr){
+        bsoncxx::document::view viewTemp = worker.get_document().value;
+        bsoncxx::document::element infrastructureId = viewTemp["IDNumber"];
+        insideArr << infrastructureId.get_int32().value;
+    }
+
+    bsoncxx::builder::stream::document insideQuery;
+    insideQuery
+            << "$pull" << bsoncxx::builder::stream::open_document
+            << "infrastructure" << bsoncxx::builder::stream::open_document
+            << "IDNumber" << bsoncxx::builder::stream::open_document
+            << "$in" << insideArr
+            << bsoncxx::builder::stream::close_document
+            << bsoncxx::builder::stream::close_document
+            << bsoncxx::builder::stream::close_document;
+
+    std::string resString = (DatabaseHandler::updateOneItem("minesTest", query, insideQuery) ? ("Infrastruktura uspešno odstranjena!") : ("Pri odstranjevanju infrastrukture je prišlo do napake!"));
+    bsoncxx::document::value documentTemp = bsoncxx::builder::stream::document{} << "message" << resString << bsoncxx::builder::stream::finalize;
+    response.body() = bsoncxx::to_json(documentTemp.view());
+}

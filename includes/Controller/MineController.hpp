@@ -28,6 +28,7 @@ public:
     static void searchBar(const request &request, response &response, Router* r);
     static void getMinesByYear(const request &request, response &response, Router* r);
     static void deleteWorker(const request &request, response &response, Router* r);
+    static void deleteInfrastructure(const request &request, response &response, Router* r);
 };
 
 #endif
