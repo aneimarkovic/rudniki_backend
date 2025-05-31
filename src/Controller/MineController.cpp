@@ -520,6 +520,6 @@ void MineController::searchBar(const request &request, response &response, Route
         temp += "}";
         response.body() += temp;
     } else{
-        response.body() = "Ni takih rudnikov";
+        response.body() = "Ni takih rudnikov!";
     }
 }
