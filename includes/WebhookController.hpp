@@ -8,6 +8,7 @@
 #include <shared_mutex>
 
 #include <boost/beast/http.hpp>
+#include <bsoncxx/builder/basic/document.hpp>
 
 #include "RouterUtil/Router.hpp"
 
@@ -35,8 +36,7 @@ private:
 
 public:
 
-	void createWebhook(const std::string webhookURL, const std::string webhookName);
-	void sendBroadcast();
+	static void createWebhook(const std::string webhookURL, const std::string webhookName);
+	static void sendBroadcast(const std::string webhookName, const bsoncxx::document::value payload);
 
-	// Tukaj se dodajo nove webhook implementacije
 };
