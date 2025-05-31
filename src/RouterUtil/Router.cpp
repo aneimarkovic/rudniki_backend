@@ -8,6 +8,7 @@ std::map<std::string, routeFunction> Router::routesPost{};
 std::map<std::string, routeFunction> Router::routesGet{};
 std::map<std::string, routeFunction> Router::routesPut{};
 std::map<std::string, routeFunction> Router::routesDelete{};
+std::shared_mutex Router::routesMutex{};
 
 /*
 	Funkcija vzame nek [originalUrl] in ga pretvori v regex pri čemer zamenja parametre (:id) z ([^/]+)
@@ -70,6 +71,7 @@ void Router::createRoute(requestType type, std::string& URL, routeFunction funct
 {
 	std::string formatedUrl = Router::convertUrlToRegexForm(URL);
 
+	std::unique_lock<std::shared_mutex> lock(routesMutex);
 	switch (type)
 	{
 	case Router::GET:
@@ -147,6 +149,7 @@ void Router::routeSelector(http::verb method, std::string& URL, const request& r
 		return;
 	}
 
+	std::shared_lock<std::shared_mutex> routes_lock(routesMutex);
 	for (const auto& pair : *currentRoutingTable) 
 	{
 		const std::string& urlPattern = pair.first;
@@ -159,6 +162,8 @@ void Router::routeSelector(http::verb method, std::string& URL, const request& r
 			{
 				UrlArguments = getParametersFromUrl(URL, urlRegex);
 			}
+
+			routes_lock.unlock();
 
 			function(request, response, this);
 			return;

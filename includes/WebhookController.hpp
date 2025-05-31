@@ -1,11 +1,15 @@
 #pragma once
 
 #include <map>
-#include <list>
+#include <unordered_set>
 #include <string>
+#include <functional>
+#include <mutex>          
+#include <shared_mutex>
 
 #include <boost/beast/http.hpp>
-#include <boost/beast/http.hpp>
+
+#include "RouterUtil/Router.hpp"
 
 namespace http = boost::beast::http;
 using request = http::request<http::string_body>;
@@ -24,14 +28,15 @@ class WebhookController
 {
 private:
 
-	std::map<std::string, std::list<response*>> clientMap;
+	static std::map<std::string, std::unordered_set<response*>> clientMap;
+	static std::shared_mutex webhookMutex;
 
-	void createInternalWebhookFunction();
+	static routeFunction createInternalWebhookFunction(const std::string& webhookURL);
 
 public:
 
 	void createWebhook(const std::string webhookURL, const std::string webhookName);
-	void sendBroadcast()
+	void sendBroadcast();
 
 	// Tukaj se dodajo nove webhook implementacije
 };
