@@ -668,3 +668,44 @@ void MineController::deleteMineral(const request &request, response &response, R
     bsoncxx::document::value documentTemp = bsoncxx::builder::stream::document{} << "message" << resString << bsoncxx::builder::stream::finalize;
     response.body() = bsoncxx::to_json(documentTemp.view());
 }
+
+void MineController::updateMine(const request &request, response &response, Router* r){
+    bsoncxx::document::value document = bsoncxx::from_json(request.body());
+    bsoncxx::document::view view = document.view();
+
+    bsoncxx::builder::stream::document query;
+    bsoncxx::document::element id = view["id"];
+    auto stringView = id.get_string().value;
+    std::string str_val(stringView.data(), stringView.size());
+    bsoncxx::oid mineID = bsoncxx::oid(str_val);
+    query << "_id" << mineID;
+
+    bsoncxx::builder::stream::document updateQuery;
+    bsoncxx::document::element element = view["name"];
+    if(element && element.type() == bsoncxx::type::k_string){
+        updateQuery << "name" << element.get_string().value;
+    }
+
+    element = view["municipality"];
+    if(element && element.type() == bsoncxx::type::k_string){
+        updateQuery << "municipality" << element.get_string().value;
+    }
+
+    element = view["status"];
+    if(element && element.type() == bsoncxx::type::k_int32){
+        updateQuery << "status" << element.get_int32().value;
+    }
+
+    element = view["type"];
+    if(element && element.type() == bsoncxx::type::k_int32){
+        updateQuery << "type" << element.get_int32().value;
+    }
+
+    bsoncxx::builder::stream::document updateSet;
+
+    updateSet << "$set" << updateQuery.view();
+
+    std::string resString = (DatabaseHandler::updateOneItem("minesTest", query, updateSet) ? ("Rudnik uspešno posodobljen!") : ("Pri posodabljanju rudnika je prišlo do napake!"));
+    bsoncxx::document::value documentTemp = bsoncxx::builder::stream::document{} << "message" << resString << bsoncxx::builder::stream::finalize;
+    response.body() = bsoncxx::to_json(documentTemp.view());
+}
