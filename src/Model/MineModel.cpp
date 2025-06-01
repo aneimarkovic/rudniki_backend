@@ -1,7 +1,7 @@
 //  Created by Anei Markovič 22.5.2025
 #include "Model/MineModel.hpp"
 
-MineModel::MineModel(std::string name, bsoncxx::oid ownerId, MineStatus status, MineType type, std::vector<MineralModel> minerals, std::vector<InfrastructureModel> infrastructure, std::vector<WorkerModel> workers, timeStamp createdAt, timeStamp modifiedAt)
+MineModel::MineModel(std::string name, bsoncxx::oid ownerId, MineStatus status, MineType type, std::vector<MineralModel> minerals, std::vector<InfrastructureModel> infrastructure, std::vector<WorkerModel> workers, timeStamp createdAt, timeStamp modifiedAt,  std::string municipality, int year, double lon, double lat)
     : name(name),
       ownerId(ownerId),
       status(status),
@@ -9,6 +9,10 @@ MineModel::MineModel(std::string name, bsoncxx::oid ownerId, MineStatus status, 
       minerals(minerals),
       infrastructure(infrastructure),
       workers(workers),
+      year(year),
+      municipality(municipality),
+      lat(lat),
+      lon(lon),
       ModelTemplate(createdAt, modifiedAt)
 {
     // validateMineData();
@@ -21,9 +25,28 @@ MineModel::MineModel()
     this->ownerId = bsoncxx::oid();
     this->status = MineStatus::CLOSED;
     this->type = MineType::SURFACE;
+
+    std::chrono::time_point<std::chrono::system_clock,
+            std::chrono::system_clock::duration>
+            now = std::chrono::system_clock::now();
+    std::chrono::time_point<std::chrono::system_clock, std::chrono::days> today =
+            std::chrono::time_point_cast<std::chrono::days>(now);
+    std::chrono::year_month_day ymd = std::chrono::year_month_day(today);
+    std::chrono::year year = ymd.year();
+
+    this->year = static_cast<int>(year);
+    this->municipality = "";
+    this->lat = 0.00;
+    this->lon = 0.00;
     this->minerals = {};
     this->infrastructure = {};
     this->workers = {};
+}
+void MineModel::setLon(double newLon){
+    this->lon = newLon;
+}
+void MineModel::setLat(double newLat){
+    this->lat = newLat;
 }
 /*
     Funkcija zgradi MineModel objekt iz pridobljenega BSON dokumenta
@@ -42,6 +65,7 @@ void MineModel::getFromBsonDocument(const bsoncxx::document::view &docView)
             this->id = bsoncxx::oid();
         }
         this->name = extractStringFromBSON(docView, "name");
+
 
         // this->ownerId = docView["ownerId"].get_oid().value;
 
@@ -70,6 +94,26 @@ void MineModel::getFromBsonDocument(const bsoncxx::document::view &docView)
 
         this->status = static_cast<MineStatus>(extractIntFromBSON(docView, "status"));
         this->type = static_cast<MineType>(extractIntFromBSON(docView, "type"));
+
+        bsoncxx::document::element tempMunicipality = docView["municipality"];
+        if(tempMunicipality && tempMunicipality.type() == bsoncxx::type::k_string) {
+            this->municipality = extractStringFromBSON(docView, "municipality");
+        }
+
+        bsoncxx::document::element tempYear = docView["year"];
+        if(tempYear && tempYear.type() == bsoncxx::type::k_int32){
+            this->year = extractIntFromBSON(docView, "year");
+        }
+
+        bsoncxx::document::element tempLon = docView["lon"];
+        if(tempLon && tempLon.type() == bsoncxx::type::k_double){
+            this->lon = extractIntFromBSON(docView, "lon");
+        }
+
+        bsoncxx::document::element tempLat = docView["lat"];
+        if(tempLat && tempLat.type() == bsoncxx::type::k_double){
+            this->lat = extractIntFromBSON(docView, "lat");
+        }
 
         bsoncxx::array::view tempMinerals = docView["minerals"].get_array().value;
         for (const auto &item : tempMinerals)
@@ -108,6 +152,10 @@ bsoncxx::document::value MineModel::convertToBsonDocument()
     bsoncxx::builder::basic::document builder{};
     builder.append(bsoncxx::builder::basic::kvp("_id", id));
     builder.append(bsoncxx::builder::basic::kvp("name", this->name));
+    builder.append(bsoncxx::builder::basic::kvp("year", this->year));
+    builder.append(bsoncxx::builder::basic::kvp("municipality", this->municipality));
+    builder.append(bsoncxx::builder::basic::kvp("lon", this->lon));
+    builder.append(bsoncxx::builder::basic::kvp("lat", this->lat));
     builder.append(bsoncxx::builder::basic::kvp("ownerId", this->ownerId));
     builder.append(bsoncxx::builder::basic::kvp("status", static_cast<int>(this->status)));
     builder.append(bsoncxx::builder::basic::kvp("type", static_cast<int>(this->type)));

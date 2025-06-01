@@ -14,17 +14,24 @@ void MineController::saveMine(const request &request, response &response, Router
   bsoncxx::document::view view = document.view();
   MineModel temp;
   temp.getFromBsonDocument(view);
-  bsoncxx::document::value insertDocument = temp.convertToBsonDocument();
-//  std::string resString = (DatabaseHandler::insertDocumnter("minesTest", insertDocument) == true ? ("Rudnik uspešno vstavljen!") : ("Pri vstavlajnju rudnika je prišlo do napake!"));
-  std::optional<bsoncxx::oid> id = DatabaseHandler::insertDocumentGetInsertId("minesTest", insertDocument);
 
   BordersModel borders;
-  if(id){
-    bsoncxx::oid actualId = *id;
-    borders.setMineId(actualId);
-  }
 //  std::cout << borders.mineId.to_string() << std::endl;
   borders.getFromBsonDocument(view);
+
+    PointModel tempPoint = borders.getPoints()[0];
+
+    temp.setLat(tempPoint.getLat());
+    temp.setLon(tempPoint.getLon());
+
+    bsoncxx::document::value insertDocument = temp.convertToBsonDocument();
+//  std::string resString = (DatabaseHandler::insertDocumnter("minesTest", insertDocument) == true ? ("Rudnik uspešno vstavljen!") : ("Pri vstavlajnju rudnika je prišlo do napake!"));
+    std::optional<bsoncxx::oid> id = DatabaseHandler::insertDocumentGetInsertId("minesTest", insertDocument);
+
+  if(id){
+        bsoncxx::oid actualId = *id;
+        borders.setMineId(actualId);
+  }
   insertDocument = borders.convertToBsonDocument();
 
   std::string resString = (DatabaseHandler::insertDocument("bordersTest", insertDocument) ? ("Meje uspešno vstavljen!") : ("Pri vstavlajnju mej je prišlo do napake!"));
@@ -555,4 +562,149 @@ void MineController::getMinesByYear(const request &request, response &response, 
     } else{
         response.body() = "{\"message\": \"Ni rudnikov v tem časovnem intervalu!\"}";
     }
+}
+
+void MineController::deleteWorker(const request &request, response &response, Router* r){
+    bsoncxx::document::value document = bsoncxx::from_json(request.body());
+    bsoncxx::document::view view = document.view();
+
+    bsoncxx::builder::stream::document query;
+    bsoncxx::document::element id = view["id"];
+    auto stringView = id.get_string().value;
+    std::string str_val(stringView.data(), stringView.size());
+    bsoncxx::oid mineID = bsoncxx::oid(str_val);
+    query << "_id" << mineID;
+
+    bsoncxx::builder::stream::array insideArr;
+    bsoncxx::document::element workers = view["workers"];
+    bsoncxx::document::view workersArr = workers.get_array().value;
+    for(const bsoncxx::document::element& worker : workersArr){
+        bsoncxx::document::view workerView = worker.get_document().value;
+        bsoncxx::document::element workerId = workerView["IDNumber"];
+        insideArr << workerId.get_int32().value;
+    }
+
+    bsoncxx::builder::stream::document insideQuery;
+    insideQuery
+    << "$pull" << bsoncxx::builder::stream::open_document
+    << "workers" << bsoncxx::builder::stream::open_document
+    << "IDNumber" << bsoncxx::builder::stream::open_document
+    << "$in" << insideArr
+    << bsoncxx::builder::stream::close_document
+    << bsoncxx::builder::stream::close_document
+    << bsoncxx::builder::stream::close_document;
+
+    std::string resString = (DatabaseHandler::updateOneItem("minesTest", query, insideQuery) ? ("Delavci uspešno odstranjeni!") : ("Pri odstranjevanju delavcov je prišlo do napake!"));
+    bsoncxx::document::value documentTemp = bsoncxx::builder::stream::document{} << "message" << resString << bsoncxx::builder::stream::finalize;
+    response.body() = bsoncxx::to_json(documentTemp.view());
+}
+
+void MineController::deleteInfrastructure(const request &request, response &response, Router* r){
+    bsoncxx::document::value document = bsoncxx::from_json(request.body());
+    bsoncxx::document::view view = document.view();
+
+    bsoncxx::builder::stream::document query;
+    bsoncxx::document::element id = view["id"];
+    auto stringView = id.get_string().value;
+    std::string str_val(stringView.data(), stringView.size());
+    bsoncxx::oid mineID = bsoncxx::oid(str_val);
+    query << "_id" << mineID;
+
+    bsoncxx::builder::stream::array insideArr;
+    bsoncxx::document::element infrastructure = view["infrastructure"];
+    bsoncxx::document::view infrastructureArr = infrastructure.get_array().value;
+    for(const bsoncxx::document::element& worker : infrastructureArr){
+        bsoncxx::document::view viewTemp = worker.get_document().value;
+        bsoncxx::document::element infrastructureId = viewTemp["IDNumber"];
+        insideArr << infrastructureId.get_int32().value;
+    }
+
+    bsoncxx::builder::stream::document insideQuery;
+    insideQuery
+            << "$pull" << bsoncxx::builder::stream::open_document
+            << "infrastructure" << bsoncxx::builder::stream::open_document
+            << "IDNumber" << bsoncxx::builder::stream::open_document
+            << "$in" << insideArr
+            << bsoncxx::builder::stream::close_document
+            << bsoncxx::builder::stream::close_document
+            << bsoncxx::builder::stream::close_document;
+
+    std::string resString = (DatabaseHandler::updateOneItem("minesTest", query, insideQuery) ? ("Infrastruktura uspešno odstranjena!") : ("Pri odstranjevanju infrastrukture je prišlo do napake!"));
+    bsoncxx::document::value documentTemp = bsoncxx::builder::stream::document{} << "message" << resString << bsoncxx::builder::stream::finalize;
+    response.body() = bsoncxx::to_json(documentTemp.view());
+}
+
+void MineController::deleteMineral(const request &request, response &response, Router* r){
+    bsoncxx::document::value document = bsoncxx::from_json(request.body());
+    bsoncxx::document::view view = document.view();
+
+    bsoncxx::builder::stream::document query;
+    bsoncxx::document::element id = view["id"];
+    auto stringView = id.get_string().value;
+    std::string str_val(stringView.data(), stringView.size());
+    bsoncxx::oid mineID = bsoncxx::oid(str_val);
+    query << "_id" << mineID;
+
+    bsoncxx::builder::stream::array insideArr;
+    bsoncxx::document::element mineral = view["minerals"];
+    bsoncxx::document::view mineralArr = mineral.get_array().value;
+    for(const bsoncxx::document::element& worker : mineralArr){
+        bsoncxx::document::view viewTemp = worker.get_document().value;
+        bsoncxx::document::element mineralName = viewTemp["name"];
+        insideArr << mineralName.get_int32().value;
+    }
+
+    bsoncxx::builder::stream::document insideQuery;
+    insideQuery
+            << "$pull" << bsoncxx::builder::stream::open_document
+            << "minerals" << bsoncxx::builder::stream::open_document
+            << "name" << bsoncxx::builder::stream::open_document
+            << "$in" << insideArr
+            << bsoncxx::builder::stream::close_document
+            << bsoncxx::builder::stream::close_document
+            << bsoncxx::builder::stream::close_document;
+
+    std::string resString = (DatabaseHandler::updateOneItem("minesTest", query, insideQuery) ? ("Minerali uspešno odstranjeni!") : ("Pri odstranjevanju mineralov je prišlo do napake!"));
+    bsoncxx::document::value documentTemp = bsoncxx::builder::stream::document{} << "message" << resString << bsoncxx::builder::stream::finalize;
+    response.body() = bsoncxx::to_json(documentTemp.view());
+}
+
+void MineController::updateMine(const request &request, response &response, Router* r){
+    bsoncxx::document::value document = bsoncxx::from_json(request.body());
+    bsoncxx::document::view view = document.view();
+
+    bsoncxx::builder::stream::document query;
+    bsoncxx::document::element id = view["id"];
+    auto stringView = id.get_string().value;
+    std::string str_val(stringView.data(), stringView.size());
+    bsoncxx::oid mineID = bsoncxx::oid(str_val);
+    query << "_id" << mineID;
+
+    bsoncxx::builder::stream::document updateQuery;
+    bsoncxx::document::element element = view["name"];
+    if(element && element.type() == bsoncxx::type::k_string){
+        updateQuery << "name" << element.get_string().value;
+    }
+
+    element = view["municipality"];
+    if(element && element.type() == bsoncxx::type::k_string){
+        updateQuery << "municipality" << element.get_string().value;
+    }
+
+    element = view["status"];
+    if(element && element.type() == bsoncxx::type::k_int32){
+        updateQuery << "status" << element.get_int32().value;
+    }
+
+    element = view["type"];
+    if(element && element.type() == bsoncxx::type::k_int32){
+        updateQuery << "type" << element.get_int32().value;
+    }
+
+    bsoncxx::builder::stream::document updateSet;
+    updateSet << "$set" << updateQuery.view();
+
+    std::string resString = (DatabaseHandler::updateOneItem("minesTest", query, updateSet) ? ("Rudnik uspešno posodobljen!") : ("Pri posodabljanju rudnika je prišlo do napake!"));
+    bsoncxx::document::value documentTemp = bsoncxx::builder::stream::document{} << "message" << resString << bsoncxx::builder::stream::finalize;
+    response.body() = bsoncxx::to_json(documentTemp.view());
 }

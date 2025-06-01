@@ -47,6 +47,10 @@ class MineModel : public ModelTemplate
 private:
     bsoncxx::oid id;
     std::string name;
+    std::string municipality;
+    int year;
+    double lon;
+    double lat;
     bsoncxx::oid ownerId;
     MineStatus status;
     MineType type;
@@ -55,8 +59,11 @@ private:
     std::vector<WorkerModel> workers;
 
 public:
-    MineModel(std::string name, bsoncxx::oid ownerId, MineStatus status, MineType type, std::vector<MineralModel> minerals, std::vector<InfrastructureModel> infrastructure, std::vector<WorkerModel> workers, timeStamp createdAt, timeStamp modifiedAt);
+    MineModel(std::string name, bsoncxx::oid ownerId, MineStatus status, MineType type, std::vector<MineralModel> minerals, std::vector<InfrastructureModel> infrastructure, std::vector<WorkerModel> workers, timeStamp createdAt, timeStamp modifiedAt, std::string municipality, int year, double lon, double lat);
     MineModel();
+    void setLon(double newLon);
+    void setLat(double newLat);
+
     void getFromBsonDocument(const bsoncxx::document::view &docView) override;
     bsoncxx::document::value convertToBsonDocument() override;
 

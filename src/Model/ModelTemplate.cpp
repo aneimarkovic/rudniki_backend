@@ -124,3 +124,32 @@ timeStamp ModelTemplate::getModifiedCreated() const
 {
     return this->modified;
 }
+
+double ModelTemplate::extractDoubleFromBSON(const bsoncxx::document::view &docView, const char *key)
+{
+    try
+    {
+        bsoncxx::document::element element = docView[key];
+
+        if (element)
+        {
+            if (element.type() == bsoncxx::type::k_double)
+            {
+                return element.get_double().value;
+            }
+            else
+            {
+                std::cerr << "Warning: Field '" << key << "' exists but is not a double type (actual type: "
+                          << bsoncxx::to_string(element.type()) << ")." << std::endl;
+            }
+        }
+        else
+        {
+            std::cerr << "Warning: Field '" << key << "' missing in BSON document." << std::endl;
+        }
+    }
+    catch (const bsoncxx::exception &e)
+    {
+        std::cerr << "Warning: BSON exception while accessing field '" << key << "': " << e.what() << std::endl;
+    }
+}

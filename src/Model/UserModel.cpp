@@ -18,7 +18,10 @@ void UserModel::getFromBsonDocument(const bsoncxx::document::view &docView)
 {
     try
     {
-        this->id = docView["_id"].get_oid().value;
+        bsoncxx::document::element element = docView["_id"];
+        if(element && element.type() == bsoncxx::type::k_oid){
+            this->id = docView["_id"].get_oid().value;
+        }
         this->username = extractStringFromBSON(docView, "username");
         this->email = extractStringFromBSON(docView, "email");
         this->password = extractStringFromBSON(docView, "password");

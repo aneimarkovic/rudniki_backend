@@ -72,10 +72,17 @@ int main()
         Router::createGetRoute("/:id", MineController::searchBar);
 
         Router::createDeleteRoute("/mine/delete/:id", MineController::deleteMine);
+        Router::createDeleteRoute("/mine/deleteWorker", MineController::deleteWorker);
+        Router::createDeleteRoute("/mine/deleteInfrastructure", MineController::deleteInfrastructure);
+        Router::createDeleteRoute("/mine/deleteMineral", MineController::deleteMineral);
+
+        Router::createPutRoute("/mine/update", MineController::updateMine);
 
 //        User routes
         Router::createPostRoute("/user/", UserController::loginUser);
         Router::createPostRoute("/user/save", UserController::saveUser);
+
+        Router::createPutRoute("/user/update", UserController::updateUser);
 
         Router::createGetRoute("/user/mines/:id", MineController::getMineBasedOnOwner);
         Router::createGetRoute("/user/:id", UserController::getUser);
