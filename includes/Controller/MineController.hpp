@@ -31,6 +31,7 @@ public:
     static void deleteInfrastructure(const request &request, response &response, Router* r);
     static void deleteMineral(const request &request, response &response, Router* r);
     static void updateMine(const request &request, response &response, Router* r);
+    static void getStatistics(const request& request, response& response, Router* r);
 };
 
 #endif
