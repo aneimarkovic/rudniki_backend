@@ -543,7 +543,7 @@ void MineController::getMinesByYear(const request &request, response &response, 
     bsoncxx::document::element from = view["from"];
     bsoncxx::document::element to = view["to"];
 
-    query << "excavationStart" << bsoncxx::builder::stream::open_document
+    query << "year" << bsoncxx::builder::stream::open_document
           << "$gte" << from.get_int32().value
           << "$lte" << to.get_int32().value
           << bsoncxx::builder::stream::close_document;
