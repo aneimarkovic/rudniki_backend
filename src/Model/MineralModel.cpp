@@ -4,7 +4,7 @@
 MineralModel::MineralModel(MineralName name, double min, double max, MineralGrade grade) : name(name), min(min), max(max), grade(grade) {}
 MineralModel::MineralModel()
 {
-    this->name = MineralName::UNDEFINED;
+    this->name = MineralName::NAME_UNDEFINED;
     this->min = 0.00;
     this->max = 0.00;
     this->grade = MineralGrade::UNDEFINED;
@@ -147,4 +147,85 @@ bool MineralModel::validateMinerals() const
     }
 
     return true;
+}
+
+
+std::string  MineralModel::mineralGradeToString(int grade) {
+    switch (static_cast<MineralGrade>(grade)) {
+    case MineralGrade::LOW: return "LOW";
+    case MineralGrade::MEDIUM: return "MEDIUM";
+    case MineralGrade::HIGH: return "HIGH";
+    case MineralGrade::UNDEFINED: return "UNDEFINED";
+    default: return "UNKNOWN_GRADE";
+    }
+}
+
+std::string MineralModel::mineralNameToString(int name) {
+    switch (static_cast<MineralName>(name)) {
+    case MineralName::NAME_UNDEFINED: return "NAME_UNDEFINED";
+    case MineralName::HALKOPIRIT: return "HALKOPIRIT";
+    case MineralName::BORNIT: return "BORNIT";
+    case MineralName::HALKOZIN: return "HALKOZIN";
+    case MineralName::PIRIT: return "PIRIT";
+    case MineralName::MARKAZIT: return "MARKAZIT";
+    case MineralName::SFALERIT: return "SFALERIT";
+    case MineralName::GALENIT: return "GALENIT";
+    case MineralName::CINABARIT: return "CINABARIT";
+    case MineralName::WULFENIT: return "WULFENIT";
+    case MineralName::BARIT: return "BARIT";
+    case MineralName::SREBRONOSNI_GALENIT: return "SREBRONOSNI_GALENIT";
+    case MineralName::SAMORODNO_ZIVO_SREBRO: return "SAMORODNO_ZIVO_SREBRO";
+    case MineralName::ANTIMONIT: return "ANTIMONIT";
+    case MineralName::SIDERIT: return "SIDERIT";
+    case MineralName::HEMATIT: return "HEMATIT";
+    case MineralName::MAGNETIT: return "MAGNETIT";
+    case MineralName::LIMONIT: return "LIMONIT";
+    case MineralName::PSILOMELAN: return "PSILOMELAN";
+    case MineralName::PIROLUZIT: return "PIROLUZIT";
+    case MineralName::URANOVA_SMOLA: return "URANOVA_SMOLA";
+    case MineralName::COFFINIT: return "COFFINIT";
+    case MineralName::BOKSIT: return "BOKSIT";
+    case MineralName::SAMORODNO_ZLATO: return "SAMORODNO_ZLATO";
+    case MineralName::TENNANTIT: return "TENNANTIT";
+    case MineralName::MALAHIT: return "MALAHIT";
+    case MineralName::KUPRIT: return "KUPRIT";
+    case MineralName::AZURIT: return "AZURIT";
+    case MineralName::REALGAR: return "REALGAR";
+    case MineralName::TORIJEVI_MINERALI: return "TORIJEVI_MINERALI";
+    case MineralName::CLAY: return "CLAY";
+    case MineralName::GRAVEL: return "GRAVEL";
+    case MineralName::LIMESTONE: return "LIMESTONE";
+    case MineralName::GRANITE: return "GRANITE";
+    case MineralName::MARBLE: return "MARBLE";
+    case MineralName::BASALT: return "BASALT";
+    case MineralName::DIORITE: return "DIORITE";
+    case MineralName::QUARTZ: return "QUARTZ";
+    case MineralName::SLATE: return "SLATE";
+    case MineralName::PEGMATITE: return "PEGMATITE";
+    case MineralName::GYPSUM: return "GYPSUM";
+    case MineralName::HALITE: return "HALITE";
+    case MineralName::SULFUR: return "SULFUR";
+    case MineralName::FLUORITE: return "FLUORITE";
+    case MineralName::KAOLIN: return "KAOLIN";
+    case MineralName::FELDSPAR: return "FELDSPAR";
+    case MineralName::MICA: return "MICA";
+    case MineralName::CALCITE: return "CALCITE";
+    case MineralName::DOLOMITE: return "DOLOMITE";
+    case MineralName::SERPENTINE: return "SERPENTINE";
+    case MineralName::CHLORITE: return "CHLORITE";
+    case MineralName::KYANITE: return "KYANITE";
+    case MineralName::CORUNDUM: return "CORUNDUM";
+    case MineralName::EMERALD: return "EMERALD";
+    case MineralName::RUBY: return "RUBY";
+    case MineralName::SAPPHIRE: return "SAPPHIRE";
+    case MineralName::OPAL: return "OPAL";
+    case MineralName::TURQUOISE: return "TURQUOISE";
+    case MineralName::GRAPHITE: return "GRAPHITE";
+    case MineralName::PLAGIOCLASE: return "PLAGIOCLASE";
+    case MineralName::ANDALUSITE: return "ANDALUSITE";
+    case MineralName::SCAPOLITE: return "SCAPOLITE";
+    case MineralName::TOURMALINE: return "TOURMALINE";
+    case MineralName::OLIVINE: return "OLIVINE";
+    default: return "UNKNOWN_MINERAL_NAME";
+    }
 }

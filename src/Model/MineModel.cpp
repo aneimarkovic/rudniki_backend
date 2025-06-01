@@ -222,3 +222,24 @@ bool MineModel::validateMineData() const
     }
     return true;
 }
+
+std::string MineModel::mineStatusToString(int status) {
+    switch (status) {
+    case 0: return "ACTIVE";
+    case 1: return "IDLE";
+    case 2: return "CLOSED";
+    case 3: return "BUILDING";
+    default: return "UNKNOWN_STATUS";
+    }
+}
+
+std::string MineModel::mineTypeToString(int type) {
+    switch (type) {
+    case 0: return "SURFACE";
+    case 1: return "UNDERGROUND";
+    case 2: return "PLACER";
+    case 3: return "INSITU";
+    case 4: return "DEEPSEA";
+    default: return "UNKNOWN_TYPE";
+    }
+}

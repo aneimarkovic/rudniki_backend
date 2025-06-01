@@ -70,6 +70,7 @@ int main()
         Router::createGetRoute("/", MineController::getScrapperMines);
         Router::createGetRoute("/mine/", MineController::getAllMines);
         Router::createGetRoute("/:id", MineController::searchBar);
+        Router::createGetRoute("/mine/statistics", MineController::getStatistics);
 
         Router::createDeleteRoute("/mine/delete/:id", MineController::deleteMine);
         Router::createDeleteRoute("/mine/deleteWorker", MineController::deleteWorker);

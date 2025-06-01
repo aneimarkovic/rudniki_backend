@@ -24,10 +24,38 @@ enum class MineralGrade
     UNDEFINED
 };
 
-enum class MineralName{
-    UNDEFINED,
+enum class MineralName {
+    NAME_UNDEFINED,
+    HALKOPIRIT,
+    BORNIT,
+    HALKOZIN,
+    PIRIT,
+    MARKAZIT,
+    SFALERIT,
+    GALENIT,
+    CINABARIT,
+    WULFENIT,
+    BARIT,
+    SREBRONOSNI_GALENIT,
+    SAMORODNO_ZIVO_SREBRO,
+    ANTIMONIT,
+    SIDERIT,
+    HEMATIT,
+    MAGNETIT,
+    LIMONIT,
+    PSILOMELAN,
+    PIROLUZIT,
+    URANOVA_SMOLA,
+    COFFINIT,
+    BOKSIT,
+    SAMORODNO_ZLATO,
+    TENNANTIT,
+    MALAHIT,
+    KUPRIT,
+    AZURIT,
+    REALGAR,
+    TORIJEVI_MINERALI,
     CLAY,
-    GOLD,
     GRAVEL,
     LIMESTONE,
     GRANITE,
@@ -39,11 +67,7 @@ enum class MineralName{
     PEGMATITE,
     GYPSUM,
     HALITE,
-    SIDERITE,
-    HEMATITE,
-    MAGNETITE,
     SULFUR,
-    BAUXITE,
     FLUORITE,
     KAOLIN,
     FELDSPAR,
@@ -51,10 +75,7 @@ enum class MineralName{
     CALCITE,
     DOLOMITE,
     SERPENTINE,
-    PYRITE,
     CHLORITE,
-    BORNITE,
-    GALENA,
     KYANITE,
     CORUNDUM,
     EMERALD,
@@ -62,18 +83,11 @@ enum class MineralName{
     SAPPHIRE,
     OPAL,
     TURQUOISE,
-    CINNABAR,
     GRAPHITE,
-    URANINITE,
     PLAGIOCLASE,
     ANDALUSITE,
-    STIBNITE,
-    BARITE,
     SCAPOLITE,
     TOURMALINE,
-    MALACHITE,
-    AZURITE,
-    LIMONITE,
     OLIVINE
 };
 
@@ -95,5 +109,8 @@ public:
     bsoncxx::document::value convertToBsonDocument();
 
     bool validateMinerals() const;
+
+    static std::string mineralGradeToString(int grade);
+    static std::string mineralNameToString(int name);
 };
 #endif

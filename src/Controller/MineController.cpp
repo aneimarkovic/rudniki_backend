@@ -1,6 +1,9 @@
 // Created by Anei Markovic 22.5.2025
 #include <iostream>
 
+#include "bsoncxx/builder/stream/document.hpp"
+#include "bsoncxx/builder/stream/array.hpp"
+
 #include "Controller/MineController.hpp"
 #include "Model/MineModel.hpp"
 #include "Model/PointModel.hpp"
@@ -25,8 +28,8 @@ void MineController::saveMine(const request &request, response &response, Router
     temp.setLon(tempPoint.getLon());
 
     bsoncxx::document::value insertDocument = temp.convertToBsonDocument();
-//  std::string resString = (DatabaseHandler::insertDocumnter("minesTest", insertDocument) == true ? ("Rudnik uspešno vstavljen!") : ("Pri vstavlajnju rudnika je prišlo do napake!"));
-    std::optional<bsoncxx::oid> id = DatabaseHandler::insertDocumentGetInsertId("minesTest", insertDocument);
+//  std::string resString = (DatabaseHandler::insertDocumnter("mines", insertDocument) == true ? ("Rudnik uspešno vstavljen!") : ("Pri vstavlajnju rudnika je prišlo do napake!"));
+    std::optional<bsoncxx::oid> id = DatabaseHandler::insertDocumentGetInsertId("mines", insertDocument);
 
   if(id){
         bsoncxx::oid actualId = *id;
@@ -48,7 +51,7 @@ void MineController::getMine(const request &request, response &response, Router 
 {
   auto filters = bsoncxx::builder::basic::make_document(bsoncxx::builder::basic::kvp("_id", bsoncxx::oid{r->UrlArguments[0]}));
 
-  std::optional<bsoncxx::document::value> mineDoc = DatabaseHandler::fetchSingleDocument("minesTest", filters);
+  std::optional<bsoncxx::document::value> mineDoc = DatabaseHandler::fetchSingleDocument("mines", filters);
   if (mineDoc)
   {
     bsoncxx::document::view viewTemp = mineDoc->view();
@@ -66,7 +69,7 @@ void MineController::deleteMine(const request &request, response &response, Rout
 {
   auto filters = bsoncxx::builder::basic::make_document(bsoncxx::builder::basic::kvp("_id", bsoncxx::oid{r->UrlArguments[0]}));
 
-  std::string resString = (DatabaseHandler::deleteDocument("minesTest", filters) == true ? ("Rudnik uspešno izbrisan!") : ("Pri brisanju rudnika je prišlo do napake!"));
+  std::string resString = (DatabaseHandler::deleteDocument("mines", filters) == true ? ("Rudnik uspešno izbrisan!") : ("Pri brisanju rudnika je prišlo do napake!"));
   bsoncxx::document::value documentTemp = bsoncxx::builder::stream::document{} << "message" << resString << bsoncxx::builder::stream::finalize;
   bsoncxx::document::view viewTemp = documentTemp.view();
   std::string jsonStr = bsoncxx::to_json(viewTemp);
@@ -110,7 +113,7 @@ void MineController::addInfrastructure(const request &request, response &respons
                                                                         bsoncxx::builder::basic::kvp("$each", infrastructureArrBson))))));
 
   bsoncxx::document::value updateValue = updateDoc.extract();
-  std::string resString = (DatabaseHandler::updateOneItem("minesTest", filters, updateValue) == true ? ("Infrastruktura uspešno dodana!") : ("Pri dodajanju infrastrukture je prišlo do napake!"));
+  std::string resString = (DatabaseHandler::updateOneItem("mines", filters, updateValue) == true ? ("Infrastruktura uspešno dodana!") : ("Pri dodajanju infrastrukture je prišlo do napake!"));
   bsoncxx::document::value documentTemp = bsoncxx::builder::stream::document{} << "message" << resString << bsoncxx::builder::stream::finalize;
   response.body() = bsoncxx::to_json(documentTemp.view());
 }
@@ -151,7 +154,7 @@ void MineController::addMineral(const request &request, response &response, Rout
                                                                         bsoncxx::builder::basic::kvp("$each", mineralArrBson))))));
 
   bsoncxx::document::value updateValue = updateDoc.extract();
-  std::string resString = (DatabaseHandler::updateOneItem("minesTest", filters, updateValue) == true ? ("Minerali uspešno dodani!") : ("Pri dodajanju mineralov je prišlo do napake!"));
+  std::string resString = (DatabaseHandler::updateOneItem("mines", filters, updateValue) == true ? ("Minerali uspešno dodani!") : ("Pri dodajanju mineralov je prišlo do napake!"));
   bsoncxx::document::value documentTemp = bsoncxx::builder::stream::document{} << "message" << resString << bsoncxx::builder::stream::finalize;
   response.body() = bsoncxx::to_json(documentTemp.view());
 }
@@ -192,10 +195,11 @@ void MineController::addWorker(const request &request, response &response, Route
                                                                         bsoncxx::builder::basic::kvp("$each", workersArrBson))))));
 
   bsoncxx::document::value updateValue = updateDoc.extract();
-  std::string resString = (DatabaseHandler::updateOneItem("minesTest", filters, updateValue) == true ? ("Delavci uspešno dodani!") : ("Pri dodajanju delavcev je prišlo do napake!"));
+  std::string resString = (DatabaseHandler::updateOneItem("mines", filters, updateValue) == true ? ("Delavci uspešno dodani!") : ("Pri dodajanju delavcev je prišlo do napake!"));
   bsoncxx::document::value documentTemp = bsoncxx::builder::stream::document{} << "message" << resString << bsoncxx::builder::stream::finalize;
   response.body() = bsoncxx::to_json(documentTemp.view());
 }
+
 //Funkcija, ki pridobi vse razpoložljive minerale
 void MineController::generateMineralsValue(const request &request, response &response, Router *r)
 {
@@ -293,7 +297,7 @@ void MineController::generateMineralsValue(const request &request, response &res
     opts.projection(bsoncxx::builder::stream::document{} << "minerals" << 1 << "_id" << 0 << bsoncxx::builder::stream::finalize);
 
     std::vector<bsoncxx::document::value> mineralsDoc = DatabaseHandler::getSpecificColumnFromDocument(
-            "minesTest", opts, std::move(filterDoc)
+            "mines", opts, std::move(filterDoc)
     );
 
     std::string temp = "{";
@@ -440,7 +444,7 @@ void MineController::getFilteredMines(const request &request, response &response
     }
 
     std::vector<bsoncxx::document::value>
-            results = DatabaseHandler::fetchMultipleDocuments("minesTest", query.view());
+            results = DatabaseHandler::fetchMultipleDocuments("mines", query.view());
 
     std::string temp = "{";
     int counter = 0;
@@ -459,7 +463,7 @@ void MineController::getFilteredMines(const request &request, response &response
 void MineController::getMineBasedOnOwner(const request &request, response &response, Router *r){
     auto filters = bsoncxx::builder::basic::make_document(bsoncxx::builder::basic::kvp("ownerId", bsoncxx::oid{r->UrlArguments[0]}));
 
-    std::optional<bsoncxx::document::value> mineDoc = DatabaseHandler::fetchSingleDocument("minesTest", filters);
+    std::optional<bsoncxx::document::value> mineDoc = DatabaseHandler::fetchSingleDocument("mines", filters);
     if (mineDoc)
     {
         bsoncxx::document::view viewTemp = mineDoc->view();
@@ -483,7 +487,7 @@ void MineController::getAllMines(const request &request, response &response, Rou
                     << bsoncxx::builder::stream::finalize
     );
 
-    std::vector<bsoncxx::document::value> result = DatabaseHandler::fetchMultipleDocumentsAggregate("minesTest", pipeline);
+    std::vector<bsoncxx::document::value> result = DatabaseHandler::fetchMultipleDocumentsAggregate("mines", pipeline);
     std::string temp = "{";
     int counter = 0;
     for (bsoncxx::document::value& it : result)
@@ -510,7 +514,7 @@ void MineController::searchBar(const request &request, response &response, Route
 
 //    std::cout << bsoncxx::to_json(filters.view()) << std::endl;
 
-    std::vector<bsoncxx::document::value> result =  DatabaseHandler::fetchMultipleDocuments("minesTest", filters.view());
+    std::vector<bsoncxx::document::value> result =  DatabaseHandler::fetchMultipleDocuments("mines", filters.view());
 
     if(!result.empty()){
         std::string temp = "{";
@@ -594,7 +598,7 @@ void MineController::deleteWorker(const request &request, response &response, Ro
     << bsoncxx::builder::stream::close_document
     << bsoncxx::builder::stream::close_document;
 
-    std::string resString = (DatabaseHandler::updateOneItem("minesTest", query, insideQuery) ? ("Delavci uspešno odstranjeni!") : ("Pri odstranjevanju delavcov je prišlo do napake!"));
+    std::string resString = (DatabaseHandler::updateOneItem("mines", query, insideQuery) ? ("Delavci uspešno odstranjeni!") : ("Pri odstranjevanju delavcov je prišlo do napake!"));
     bsoncxx::document::value documentTemp = bsoncxx::builder::stream::document{} << "message" << resString << bsoncxx::builder::stream::finalize;
     response.body() = bsoncxx::to_json(documentTemp.view());
 }
@@ -629,7 +633,7 @@ void MineController::deleteInfrastructure(const request &request, response &resp
             << bsoncxx::builder::stream::close_document
             << bsoncxx::builder::stream::close_document;
 
-    std::string resString = (DatabaseHandler::updateOneItem("minesTest", query, insideQuery) ? ("Infrastruktura uspešno odstranjena!") : ("Pri odstranjevanju infrastrukture je prišlo do napake!"));
+    std::string resString = (DatabaseHandler::updateOneItem("mines", query, insideQuery) ? ("Infrastruktura uspešno odstranjena!") : ("Pri odstranjevanju infrastrukture je prišlo do napake!"));
     bsoncxx::document::value documentTemp = bsoncxx::builder::stream::document{} << "message" << resString << bsoncxx::builder::stream::finalize;
     response.body() = bsoncxx::to_json(documentTemp.view());
 }
@@ -664,7 +668,7 @@ void MineController::deleteMineral(const request &request, response &response, R
             << bsoncxx::builder::stream::close_document
             << bsoncxx::builder::stream::close_document;
 
-    std::string resString = (DatabaseHandler::updateOneItem("minesTest", query, insideQuery) ? ("Minerali uspešno odstranjeni!") : ("Pri odstranjevanju mineralov je prišlo do napake!"));
+    std::string resString = (DatabaseHandler::updateOneItem("mines", query, insideQuery) ? ("Minerali uspešno odstranjeni!") : ("Pri odstranjevanju mineralov je prišlo do napake!"));
     bsoncxx::document::value documentTemp = bsoncxx::builder::stream::document{} << "message" << resString << bsoncxx::builder::stream::finalize;
     response.body() = bsoncxx::to_json(documentTemp.view());
 }
@@ -704,7 +708,226 @@ void MineController::updateMine(const request &request, response &response, Rout
     bsoncxx::builder::stream::document updateSet;
     updateSet << "$set" << updateQuery.view();
 
-    std::string resString = (DatabaseHandler::updateOneItem("minesTest", query, updateSet) ? ("Rudnik uspešno posodobljen!") : ("Pri posodabljanju rudnika je prišlo do napake!"));
+    std::string resString = (DatabaseHandler::updateOneItem("mines", query, updateSet) ? ("Rudnik uspešno posodobljen!") : ("Pri posodabljanju rudnika je prišlo do napake!"));
     bsoncxx::document::value documentTemp = bsoncxx::builder::stream::document{} << "message" << resString << bsoncxx::builder::stream::finalize;
     response.body() = bsoncxx::to_json(documentTemp.view());
+}
+
+/*
+    Funkcija izračuna statistične podakte o rudnikih in jih pošlje odjemalcu
+*/
+void MineController::getStatistics(const request& req, response& res, Router* r)
+{
+    mongocxx::pipeline pipeline;
+
+    pipeline.facet(
+        bsoncxx::builder::stream::document{}
+        << "totalMines" << bsoncxx::builder::stream::open_array
+        << bsoncxx::builder::stream::open_document
+        << "$count" << "count"
+        << bsoncxx::builder::stream::close_document
+        << bsoncxx::builder::stream::close_array
+
+        << "minesPerMunicipality" << bsoncxx::builder::stream::open_array
+        << bsoncxx::builder::stream::open_document
+        << "$group" << bsoncxx::builder::stream::open_document
+        << "_id" << "$municipality" 
+        << "count" << bsoncxx::builder::stream::open_document << "$sum" << 1 << bsoncxx::builder::stream::close_document
+        << bsoncxx::builder::stream::close_document
+        << bsoncxx::builder::stream::close_document
+        << bsoncxx::builder::stream::close_array
+
+        << "minesPerYear" << bsoncxx::builder::stream::open_array
+        << bsoncxx::builder::stream::open_document
+        << "$group" << bsoncxx::builder::stream::open_document
+        << "_id" << "$year"  
+        << "count" << bsoncxx::builder::stream::open_document << "$sum" << 1 << bsoncxx::builder::stream::close_document
+        << bsoncxx::builder::stream::close_document
+        << bsoncxx::builder::stream::close_document
+        << bsoncxx::builder::stream::close_array
+
+        << "minesByStatus" << bsoncxx::builder::stream::open_array
+        << bsoncxx::builder::stream::open_document
+        << "$group" << bsoncxx::builder::stream::open_document
+        << "_id" << "$status" 
+        << "count" << bsoncxx::builder::stream::open_document << "$sum" << 1 << bsoncxx::builder::stream::close_document
+        << bsoncxx::builder::stream::close_document
+        << bsoncxx::builder::stream::close_document
+        << bsoncxx::builder::stream::close_array
+
+        << "minesByMineral" << bsoncxx::builder::stream::open_array
+        << bsoncxx::builder::stream::open_document
+        << "$unwind" << "$minerals"
+        << bsoncxx::builder::stream::close_document
+        << bsoncxx::builder::stream::open_document
+        << "$group" << bsoncxx::builder::stream::open_document
+        << "_id" << "$minerals.name"
+        << "count" << bsoncxx::builder::stream::open_document << "$sum" << 1 << bsoncxx::builder::stream::close_document
+        << bsoncxx::builder::stream::close_document
+        << bsoncxx::builder::stream::close_document
+        << bsoncxx::builder::stream::close_array
+
+        << "minesByMineralGrade" << bsoncxx::builder::stream::open_array
+        << bsoncxx::builder::stream::open_document
+        << "$unwind" << "$minerals"
+        << bsoncxx::builder::stream::close_document
+        << bsoncxx::builder::stream::open_document
+        << "$group" << bsoncxx::builder::stream::open_document
+        << "_id" << "$minerals.grade"
+        << "count" << bsoncxx::builder::stream::open_document << "$sum" << 1 << bsoncxx::builder::stream::close_document
+        << bsoncxx::builder::stream::close_document
+        << bsoncxx::builder::stream::close_document
+        << bsoncxx::builder::stream::close_array
+
+
+        << "minesByType" << bsoncxx::builder::stream::open_array
+        << bsoncxx::builder::stream::open_document
+        << "$group" << bsoncxx::builder::stream::open_document
+        << "_id" << "$type" 
+        << "count" << bsoncxx::builder::stream::open_document << "$sum" << 1 << bsoncxx::builder::stream::close_document
+        << bsoncxx::builder::stream::close_document
+        << bsoncxx::builder::stream::close_document
+        << bsoncxx::builder::stream::close_array
+        << bsoncxx::builder::stream::finalize
+    );
+
+
+    std::vector<bsoncxx::document::value> results = DatabaseHandler::fetchMultipleDocumentsAggregate("mines", pipeline);
+
+    bsoncxx::builder::stream::document response_builder{};
+
+    if (!results.empty()) {
+        bsoncxx::document::view facets_doc = results[0].view();
+
+        // 1. Total Mines
+        auto total_mines_array_val = facets_doc["totalMines"].get_array().value;
+        if (!total_mines_array_val.empty()) {
+            response_builder << "totalMines" << total_mines_array_val[0].get_document().view()["count"].get_int32().value;
+        }
+        else {
+            response_builder << "totalMines" << 0;
+        }
+
+        // 2. Mines per Občina
+        auto mpm_builder = response_builder << "minesPerMunicipality" << bsoncxx::builder::stream::open_array;
+        for (const auto& item : facets_doc["minesPerMunicipality"].get_array().value) {
+            bsoncxx::document::view doc = item.get_document().view();
+            mpm_builder << bsoncxx::builder::stream::open_document
+                << "municipality" << doc["_id"].get_string().value
+                << "count" << doc["count"].get_int32().value
+                << bsoncxx::builder::stream::close_document;
+        }
+        mpm_builder << bsoncxx::builder::stream::close_array;
+
+        // 3. Mines per Year
+        auto mpy_builder = response_builder << "minesPerYear" << bsoncxx::builder::stream::open_array;
+        for (const auto& item : facets_doc["minesPerYear"].get_array().value) {
+            bsoncxx::document::view doc = item.get_document().view();
+            
+            int32_t year = 1970;
+            if (doc["_id"].type() == bsoncxx::type::k_int32) {
+                year = doc["_id"].get_int32().value;
+            }
+
+            mpy_builder << bsoncxx::builder::stream::open_document
+                << "year" << year
+                << "count" << doc["count"].get_int32().value
+                << bsoncxx::builder::stream::close_document;
+        }
+        mpy_builder << bsoncxx::builder::stream::close_array;
+
+        // 4. Mines by Status
+        auto mbs_builder = response_builder << "minesByStatus" << bsoncxx::builder::stream::open_array;
+        for (const auto& item : facets_doc["minesByStatus"].get_array().value) {
+            bsoncxx::document::view doc = item.get_document().view();
+            std::string status_str = "UNKNOWN_DB_STATUS";
+
+            if (doc["_id"].type() == bsoncxx::type::k_int32) {
+                int32_t status_val = doc["_id"].get_int32().value;
+                status_str = MineModel::mineStatusToString(status_val);
+            }
+            else if (doc["_id"].type() == bsoncxx::type::k_null) { 
+                status_str = "NOT_SPECIFIED";
+            }
+
+            mbs_builder << bsoncxx::builder::stream::open_document
+                << "status" << status_str
+                << "count" << doc["count"].get_int32().value
+                << bsoncxx::builder::stream::close_document;
+        }
+        mbs_builder << bsoncxx::builder::stream::close_array;
+
+        // 5. Mines by Type
+        auto mbt_builder = response_builder << "minesByType" << bsoncxx::builder::stream::open_array;
+        for (const auto& item : facets_doc["minesByType"].get_array().value) {
+            bsoncxx::document::view doc = item.get_document().view();
+            std::string type_str = "UNKNOWN_DB_TYPE";
+
+            if (doc["_id"].type() == bsoncxx::type::k_int32) {
+                int32_t type_val = doc["_id"].get_int32().value;
+                std::cout << "Found int32 value: " << type_val << std::endl;
+                type_str = MineModel::mineTypeToString(type_val);
+            }
+            else if (doc["_id"].type() == bsoncxx::type::k_null) {
+                std::cout << "Found null value" << std::endl;
+                type_str = "NOT_SPECIFIED";
+            }
+            else {
+                std::cout << "Unexpected type found: " << bsoncxx::to_string(doc["_id"].type()) << std::endl;
+            }
+
+            mbt_builder << bsoncxx::builder::stream::open_document
+                << "type" << type_str
+                << "count" << doc["count"].get_int32().value
+                << bsoncxx::builder::stream::close_document;
+        }
+        mbt_builder << bsoncxx::builder::stream::close_array;
+
+        // 6. Mines by Mineral
+        auto mbm_builder = response_builder << "minesByMineral" << bsoncxx::builder::stream::open_array;
+        for (const auto& item : facets_doc["minesByMineral"].get_array().value) {
+            bsoncxx::document::view doc = item.get_document().view();
+            std::string mineral_name = "UNKNOWN_MINERAL";
+
+            if (doc["_id"].type() == bsoncxx::type::k_int32) {
+                int32_t mineral_val = doc["_id"].get_int32().value;
+                mineral_name = MineralModel::mineralNameToString(mineral_val);
+            }
+
+            mbm_builder << bsoncxx::builder::stream::open_document
+                << "mineral" << mineral_name
+                << "count" << doc["count"].get_int32().value
+                << bsoncxx::builder::stream::close_document;
+        }
+        mbm_builder << bsoncxx::builder::stream::close_array;
+
+        // 7. Mines by Mineral Grade
+        auto mbmg_builder = response_builder << "minesByMineralGrade" << bsoncxx::builder::stream::open_array;
+        for (const auto& item : facets_doc["minesByMineralGrade"].get_array().value) {
+            bsoncxx::document::view doc = item.get_document().view();
+            std::string grade_str = "UNKNOWN_GRADE";
+
+            if (doc["_id"].type() == bsoncxx::type::k_int32) {
+                int32_t grade_val = doc["_id"].get_int32().value;
+                grade_str = MineralModel::mineralGradeToString(grade_val);
+            }
+            else if (doc["_id"].type() == bsoncxx::type::k_null) {
+                grade_str = "NOT_SPECIFIED";
+            }
+
+            mbmg_builder << bsoncxx::builder::stream::open_document
+                << "grade" << grade_str
+                << "count" << doc["count"].get_int32().value
+                << bsoncxx::builder::stream::close_document;
+        }
+        mbmg_builder << bsoncxx::builder::stream::close_array;
+
+
+        std::string json_response = bsoncxx::to_json(response_builder.view());
+        res.body() = json_response;
+    }
+    else {
+        response_builder << "message" << "No statistics data found or an error occurred.";
+        std::cout << "No statistics data: " << bsoncxx::to_json(response_builder.view()) << std::endl;
+    }
 }

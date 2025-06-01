@@ -64,6 +64,9 @@ public:
     void setLon(double newLon);
     void setLat(double newLat);
 
+    static std::string mineStatusToString(int status);
+    static std::string mineTypeToString(int type);
+
     void getFromBsonDocument(const bsoncxx::document::view &docView) override;
     bsoncxx::document::value convertToBsonDocument() override;
 
