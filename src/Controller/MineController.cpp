@@ -677,11 +677,64 @@ void MineController::updateMine(const request &request, response &response, Rout
     bsoncxx::document::value document = bsoncxx::from_json(request.body());
     bsoncxx::document::view view = document.view();
 
+    std::string token = "";
+    auto it = request.find(boost::beast::http::field::cookie);
+    if(it != request.end())
+    {
+        auto cookie_header = std::string(it->value());
+        size_t pos = cookie_header.find("jwt=");
+        if (pos != std::string::npos) {
+            size_t start = pos + 4;
+            size_t end = cookie_header.find(";", start);
+            token = cookie_header.substr(start, end - start);
+        }
+    }
+
     bsoncxx::builder::stream::document query;
     bsoncxx::document::element id = view["id"];
     auto stringView = id.get_string().value;
     std::string str_val(stringView.data(), stringView.size());
     bsoncxx::oid mineID = bsoncxx::oid(str_val);
+
+
+    mongocxx::options::find opts{};
+    opts.projection(bsoncxx::builder::stream::document{} << "ownerId" << 1 << "_id" << 0 << bsoncxx::builder::stream::finalize);
+
+    bsoncxx::builder::stream::document filters;
+    filters << "_id" << mineID;
+    bsoncxx::document::value docValue = filters << bsoncxx::builder::stream::finalize;
+    std::vector<bsoncxx::document::value> result = DatabaseHandler::getSpecificColumnFromDocument("users", opts, docValue);
+
+    if(result.size() == 0){
+        bsoncxx::document::value documentTemp = bsoncxx::builder::stream::document{} << "message" << "Napaka ob posodabljanju rudnika!" << bsoncxx::builder::stream::finalize;
+        bsoncxx::document::view viewTemp = documentTemp.view();
+        std::string jsonStr = bsoncxx::to_json(viewTemp);
+
+        response.body() = jsonStr;
+        return;
+    }
+
+    if(token.empty()){
+        bsoncxx::document::value documentTemp = bsoncxx::builder::stream::document{} << "message" << "Potrebna prijava!" << bsoncxx::builder::stream::finalize;
+        bsoncxx::document::view viewTemp = documentTemp.view();
+        std::string jsonStr = bsoncxx::to_json(viewTemp);
+
+        response.body() = jsonStr;
+        return;
+    }
+
+    bsoncxx::oid userId = UserModel::getUserIdFromJWT(token);
+
+    if(userId != result[0].view()["ownerId"].get_oid().value){
+        bsoncxx::document::value documentTemp = bsoncxx::builder::stream::document{} << "message" << "Rudnik lahko updata samo lastnik!" << bsoncxx::builder::stream::finalize;
+        bsoncxx::document::view viewTemp = documentTemp.view();
+        std::string jsonStr = bsoncxx::to_json(viewTemp);
+
+        response.body() = jsonStr;
+        return;
+    }
+
+
     query << "_id" << mineID;
 
     bsoncxx::builder::stream::document updateQuery;

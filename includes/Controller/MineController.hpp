@@ -11,6 +11,8 @@
 #include <bsoncxx/builder/stream/document.hpp>
 #include  <bsoncxx/builder/stream/array.hpp>
 
+#include "Model/UserModel.hpp"
+
 class MineController
 {
 public:
