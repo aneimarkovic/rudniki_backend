@@ -99,17 +99,21 @@ void HttpServer::getRequest(tcp::socket socket)
     res.version(req.version());
     res.keep_alive(req.keep_alive());
 
-    // ROUTER CALL
-    Router newRoute;
-    newRoute.handleRequest(req, res);
+    beast::tcp_stream stream(std::move(socket));
 
-    res.set(http::field::server, "Rudnik http server");
-    res.set(http::field::content_type, "application/json");
-    res.set(http::field::access_control_allow_credentials, "true");
-    res.set(http::field::access_control_allow_origin, "http://127.0.0.1:3000");
-    res.set(http::field::access_control_allow_headers, "Content-Type, Authorization, X-Requested-With, Accept");
-    res.prepare_payload();
-    http::write(socket, res);
+    // ROUTER CALL - pass the stream
+    Router newRoute;
+    newRoute.handleRequest(req, res, &stream);
+
+    if (!websocket::is_upgrade(req)) {
+        res.set(http::field::server, "Rudnik http server");
+        res.set(http::field::content_type, "application/json");
+        res.set(http::field::access_control_allow_credentials, "true");
+        res.set(http::field::access_control_allow_origin, "http://127.0.0.1:3000");
+        res.set(http::field::access_control_allow_headers, "Content-Type, Authorization, X-Requested-With, Accept");
+        res.prepare_payload();
+        http::write(stream, res);
+    }
 }
 
 /*Metoda, ki pošlje odgovor nazaj na clientside*/

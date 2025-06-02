@@ -180,5 +180,13 @@ void Router::handleRequest(const request& request, response& response)
 	boost::string_view target_view = request.target();
 	std::string URL(target_view.data(), target_view.length());
 
-	routeSelector(requestMethod, URL, request, response);
+    try{
+        routeSelector(requestMethod, URL, request, response);
+    } catch (const std::exception &e){
+        bsoncxx::document::value documentTemp = bsoncxx::builder::stream::document{} << "message" << "Prišlo je do napake!" << bsoncxx::builder::stream::finalize;
+        bsoncxx::document::view viewTemp = documentTemp.view();
+        std::string jsonStr = bsoncxx::to_json(viewTemp);
+
+        response.body() = jsonStr;
+    }
 }

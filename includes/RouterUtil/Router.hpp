@@ -8,6 +8,13 @@
 #include <shared_mutex>
 
 #include <boost/beast/http.hpp>
+#include <boost/beast/core.hpp>
+
+#include <bsoncxx/json.hpp>
+#include <bsoncxx/document/view.hpp>
+#include <bsoncxx/document/value.hpp>
+#include <bsoncxx/builder/stream/document.hpp>
+
 class Router;
 // Pripravi vse nove tipe, ki jih rabimo
 namespace http = boost::beast::http;
