@@ -129,17 +129,22 @@ std::string UserModel::getDateFromMS(timeStamp time)
 std::optional<bsoncxx::oid> UserModel::authUserData() const
 {
     try {
-    using bsoncxx::builder::basic::kvp;
-    using bsoncxx::builder::basic::make_document;
+        using bsoncxx::builder::basic::kvp;
+        using bsoncxx::builder::basic::make_document;
 
-    bsoncxx::document::value filter = this->username != "" ? make_document(kvp("username", this->username),kvp("password", this->password)) : make_document(
-            kvp("email", this->email),
-            kvp("password", this->password));
+        bsoncxx::document::value filter = this->username != "" ? make_document(kvp("username", this->username)) : make_document(
+                kvp("email", this->email));
 
-    auto result = DatabaseHandler::fetchSingleDocument("users", filter);
+        std::cout << bsoncxx::to_json(filter.view()) << std::endl;
 
-    bsoncxx::document::view resultView = result->view();
-        return resultView["_id"].get_oid().value;
+        auto result = DatabaseHandler::fetchSingleDocument("users", filter.view());
+
+        if(result){
+            bsoncxx::document::view resultView = result->view();
+            return resultView["_id"].get_oid().value;
+        } else {
+            return std::nullopt;
+        }
     } catch (const std::exception &e){
         return std::nullopt;
     }
@@ -167,8 +172,8 @@ bsoncxx::oid UserModel::getUserIdFromJWT(std::string &jwt)
 
 std::string UserModel::toString() const{
     return this->username + "\n" +
-            this->password + "\n" +
-            this->email + "\n";
+           this->password + "\n" +
+           this->email + "\n";
 }
 
 void UserModel::getFromBsonDocumentLogin(const bsoncxx::document::view &docView)
@@ -194,12 +199,12 @@ void UserModel::hashPassword()
     char hashed_password_cstr[crypto_pwhash_STRBYTES];
 
     if (crypto_pwhash_str_alg(
-        hashed_password_cstr,
-        this->password.c_str(),
-        this->password.length(),
-        crypto_pwhash_OPSLIMIT_INTERACTIVE, 
-        crypto_pwhash_MEMLIMIT_INTERACTIVE, 
-        crypto_pwhash_ALG_DEFAULT           
+            hashed_password_cstr,
+            this->password.c_str(),
+            this->password.length(),
+            crypto_pwhash_OPSLIMIT_INTERACTIVE,
+            crypto_pwhash_MEMLIMIT_INTERACTIVE,
+            crypto_pwhash_ALG_DEFAULT
     ) != 0) {
         throw std::runtime_error("Failed to hash password.");
     }
@@ -213,16 +218,16 @@ void UserModel::hashPassword()
 bool UserModel::verifyPassword(const std::string& plainPassword, const std::string& hashedPassword)
 {
     if (plainPassword.empty() || hashedPassword.empty()) {
-        return false; 
+        return false;
     }
 
     if (crypto_pwhash_str_verify(
-        hashedPassword.c_str(),
-        plainPassword.c_str(),
-        plainPassword.length()
+            hashedPassword.c_str(),
+            plainPassword.c_str(),
+            plainPassword.length()
     ) == 0) {
-        return true; 
+        return true;
     }
 
-    return false; 
+    return false;
 }

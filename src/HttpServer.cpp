@@ -106,7 +106,7 @@ void HttpServer::getRequest(tcp::socket socket)
     res.set(http::field::server, "Rudnik http server");
     res.set(http::field::content_type, "application/json");
     res.set(http::field::access_control_allow_credentials, "true");
-    res.set(http::field::access_control_allow_origin, "http://localhost:3000");
+    res.set(http::field::access_control_allow_origin, "http://127.0.0.1:3000");
     res.set(http::field::access_control_allow_headers, "Content-Type, Authorization, X-Requested-With, Accept");
     res.prepare_payload();
     http::write(socket, res);
@@ -128,13 +128,13 @@ std::string HttpServer::createJWT(bsoncxx::oid userId)
     auto expirationTime = currentTime + std::chrono::seconds{604800};
 
     std::string token = jwt::create()
-                            .set_type("JWT")
-                            .set_issuer("server")
-                            .set_payload_claim("sub", jwt::claim(std::string(publicKey)))
-                            .set_payload_claim("issued_time", jwt::claim(picojson::value(currentTime.count())))
-                            .set_payload_claim("expiration_time", jwt::claim(picojson::value(expirationTime.count())))
-                            .set_payload_claim("user", jwt::claim(userId.to_string()))
-                            .sign(jwt::algorithm::hs256{privateKey});
+            .set_type("JWT")
+            .set_issuer("server")
+            .set_payload_claim("sub", jwt::claim(std::string(publicKey)))
+            .set_payload_claim("issued_time", jwt::claim(picojson::value(currentTime.count())))
+            .set_payload_claim("expiration_time", jwt::claim(picojson::value(expirationTime.count())))
+            .set_payload_claim("user", jwt::claim(userId.to_string()))
+            .sign(jwt::algorithm::hs256{privateKey});
     return token;
 }
 
@@ -161,8 +161,8 @@ bool HttpServer::verifyJWT(std::string &token)
         // }
 
         auto verifier = jwt::verify()
-                            .allow_algorithm(jwt::algorithm::hs256{privateKey})
-                            .with_issuer("server");
+                .allow_algorithm(jwt::algorithm::hs256{privateKey})
+                .with_issuer("server");
         verifier.verify(decoded);
         return true;
     }
