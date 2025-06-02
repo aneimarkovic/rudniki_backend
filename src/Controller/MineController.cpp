@@ -673,13 +673,13 @@ void MineController::deleteMineral(const request &request, response &response, R
     response.body() = bsoncxx::to_json(documentTemp.view());
 }
 
-void MineController::updateMine(const request &request, response &response, Router* r){
+void MineController::updateMine(const request& request, response& response, Router* r) {
     bsoncxx::document::value document = bsoncxx::from_json(request.body());
     bsoncxx::document::view view = document.view();
 
     std::string token = "";
     auto it = request.find(boost::beast::http::field::cookie);
-    if(it != request.end())
+    if (it != request.end())
     {
         auto cookie_header = std::string(it->value());
         size_t pos = cookie_header.find("jwt=");
@@ -705,7 +705,7 @@ void MineController::updateMine(const request &request, response &response, Rout
     bsoncxx::document::value docValue = filters << bsoncxx::builder::stream::finalize;
     std::vector<bsoncxx::document::value> result = DatabaseHandler::getSpecificColumnFromDocument("users", opts, docValue);
 
-    if(result.size() == 0){
+    if (result.size() == 0) {
         bsoncxx::document::value documentTemp = bsoncxx::builder::stream::document{} << "message" << "Napaka ob posodabljanju rudnika!" << bsoncxx::builder::stream::finalize;
         bsoncxx::document::view viewTemp = documentTemp.view();
         std::string jsonStr = bsoncxx::to_json(viewTemp);
@@ -714,7 +714,7 @@ void MineController::updateMine(const request &request, response &response, Rout
         return;
     }
 
-    if(token.empty()){
+    if (token.empty()) {
         bsoncxx::document::value documentTemp = bsoncxx::builder::stream::document{} << "message" << "Potrebna prijava!" << bsoncxx::builder::stream::finalize;
         bsoncxx::document::view viewTemp = documentTemp.view();
         std::string jsonStr = bsoncxx::to_json(viewTemp);
@@ -725,7 +725,7 @@ void MineController::updateMine(const request &request, response &response, Rout
 
     bsoncxx::oid userId = UserModel::getUserIdFromJWT(token);
 
-    if(userId != result[0].view()["ownerId"].get_oid().value){
+    if (userId != result[0].view()["ownerId"].get_oid().value) {
         bsoncxx::document::value documentTemp = bsoncxx::builder::stream::document{} << "message" << "Rudnik lahko updata samo lastnik!" << bsoncxx::builder::stream::finalize;
         bsoncxx::document::view viewTemp = documentTemp.view();
         std::string jsonStr = bsoncxx::to_json(viewTemp);
@@ -739,22 +739,22 @@ void MineController::updateMine(const request &request, response &response, Rout
 
     bsoncxx::builder::stream::document updateQuery;
     bsoncxx::document::element element = view["name"];
-    if(element && element.type() == bsoncxx::type::k_string){
+    if (element && element.type() == bsoncxx::type::k_string) {
         updateQuery << "name" << element.get_string().value;
     }
 
     element = view["municipality"];
-    if(element && element.type() == bsoncxx::type::k_string){
+    if (element && element.type() == bsoncxx::type::k_string) {
         updateQuery << "municipality" << element.get_string().value;
     }
 
     element = view["status"];
-    if(element && element.type() == bsoncxx::type::k_int32){
+    if (element && element.type() == bsoncxx::type::k_int32) {
         updateQuery << "status" << element.get_int32().value;
     }
 
     element = view["type"];
-    if(element && element.type() == bsoncxx::type::k_int32){
+    if (element && element.type() == bsoncxx::type::k_int32) {
         updateQuery << "type" << element.get_int32().value;
     }
 
