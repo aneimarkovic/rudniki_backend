@@ -19,6 +19,9 @@ po obdelavi zahteve dobi v funkcijo sen objekt odgovor, ki ga pošlje na client 
 #include <iostream>
 #include <string.h>
 #include <chrono>
+#include <boost/beast/websocket.hpp>
+
+namespace websocket = boost::beast::websocket;
 
 namespace beast = boost::beast;
 namespace http = beast::http;

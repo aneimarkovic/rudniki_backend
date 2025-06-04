@@ -24,10 +24,10 @@ void UserController::saveUser(const request& request, response& response, Router
         bsoncxx::oid actualId = *id;
         std::string jwt = HttpServer::createJWT(actualId);
 
-        std::string cookie = "token=" + jwt + "; HttpOnly; Path=/; SameSite=Strict";
+        std::string cookie = "jwt=" + jwt + "; Path=/; Max-Age=604800; Secure; SameSite=none";
         response.set(http::field::set_cookie, cookie);
 
-        std::cout << actualId.to_string() << std::endl;
+//        std::cout << actualId.to_string() << std::endl;
 
         bsoncxx::document::value documentTemp = bsoncxx::builder::stream::document{} << "message" << actualId.to_string() << bsoncxx::builder::stream::finalize;
         bsoncxx::document::view viewTemp = documentTemp.view();
@@ -44,26 +44,60 @@ void UserController::loginUser(const request &request, response &response, Route
     bsoncxx::document::value document = bsoncxx::from_json(request.body());
     bsoncxx::document::view view = document.view();
 
-    if (request.base().find("Cookie") != request.base().end()) {
-        std::string cookieHeader = request.base()["Cookie"];
-        std::cout << cookieHeader << std::endl;
+    std::string token = "";
+    auto it = request.find(boost::beast::http::field::cookie);
+    if(it != request.end())
+    {
+        auto cookie_header = std::string(it->value());
+        size_t pos = cookie_header.find("jwt=");
+        if (pos != std::string::npos) {
+            size_t start = pos + 4;
+            size_t end = cookie_header.find(";", start);
+            token = cookie_header.substr(start, end - start);
+        }
     }
 
+    if(token != ""){
+        bsoncxx::document::value documentTemp = bsoncxx::builder::stream::document{} << "message" << "Napaka ob prijavi!" << bsoncxx::builder::stream::finalize;
+        bsoncxx::document::view viewTemp = documentTemp.view();
+        std::string jsonStr = bsoncxx::to_json(viewTemp);
+
+        response.body() = jsonStr;
+        return;
+    }
 
     UserModel temp;
     temp.getFromBsonDocumentLogin(view);
 
-    temp.hashPassword();
-    std::optional<bsoncxx::oid> id = temp.authUserData();
-    std::string status = "Napaka ob prijavi!";
-    if(id){
-        status = id->to_string();
-        bsoncxx::oid actualId = *id;
-        std::string jwt = HttpServer::createJWT(actualId);
+    std::cout << temp.toString() << std::endl;
 
-        std::string cookie = "token=" + jwt + "; HttpOnly; Path=/; SameSite=Strict";
-        response.set(http::field::set_cookie, cookie);
+    mongocxx::options::find opts{};
+    opts.projection(bsoncxx::builder::stream::document{} << "password_hash" << 1 << "_id" << 1 << bsoncxx::builder::stream::finalize);
+
+    bsoncxx::builder::stream::document filters;
+    if(temp.username != ""){
+        filters << "username" << temp.username;
+    } else {
+        filters << "email" << temp.email;
     }
+
+    bsoncxx::document::value docValue = filters << bsoncxx::builder::stream::finalize;
+    std::vector<bsoncxx::document::value> result = DatabaseHandler::getSpecificColumnFromDocument("users", opts, docValue);
+    std::string status = "Napaka ob prijavi!";
+    if(result.size() > 0){
+        bsoncxx::document::element password = result[0].view()["password_hash"];
+        if(password && password.type() == bsoncxx::type::k_string){
+            std::string passwordHash(password.get_string().value);
+            if(UserModel::verifyPassword(temp.password, passwordHash)){
+                bsoncxx::oid id = result[0].view()["_id"].get_oid().value;
+                std::string jwt = HttpServer::createJWT(id);
+                std::string cookie = "jwt=" + jwt + "; Path=/; Max-Age=604800; Secure; SameSite=none";
+                response.set(http::field::set_cookie, cookie);
+                status = id.to_string();
+            }
+        }
+    }
+
     bsoncxx::document::value documentTemp = bsoncxx::builder::stream::document{} << "message" << status << bsoncxx::builder::stream::finalize;
     bsoncxx::document::view viewTemp = documentTemp.view();
     std::string jsonStr = bsoncxx::to_json(viewTemp);

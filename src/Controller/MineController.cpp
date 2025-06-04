@@ -9,41 +9,89 @@
 #include "Model/PointModel.hpp"
 #include "Model/BordersModel.hpp"
 #include "DatabaseHandler.hpp"
+#include "WebSocket/WebsocketController.hpp"
 
 // Funkcija shrani novi rudnik v bazo
-void MineController::saveMine(const request &request, response &response, Router *r)
-{
-  bsoncxx::document::value document = bsoncxx::from_json(request.body());
-  bsoncxx::document::view view = document.view();
-  MineModel temp;
-  temp.getFromBsonDocument(view);
+void MineController::saveMine(const request& request, response& response, Router* r) {
+    bsoncxx::document::value document = bsoncxx::from_json(request.body());
+    bsoncxx::document::view view = document.view();
 
-  BordersModel borders;
-//  std::cout << borders.mineId.to_string() << std::endl;
-  borders.getFromBsonDocument(view);
+    MineModel temp;
+    temp.getFromBsonDocument(view);
+
+    BordersModel borders;
+    borders.getFromBsonDocument(view);
 
     PointModel tempPoint = borders.getPoints()[0];
-
     temp.setLat(tempPoint.getLat());
     temp.setLon(tempPoint.getLon());
 
     bsoncxx::document::value insertDocument = temp.convertToBsonDocument();
-//  std::string resString = (DatabaseHandler::insertDocumnter("mines", insertDocument) == true ? ("Rudnik uspešno vstavljen!") : ("Pri vstavlajnju rudnika je prišlo do napake!"));
+
     std::optional<bsoncxx::oid> id = DatabaseHandler::insertDocumentGetInsertId("mines", insertDocument);
 
-  if(id){
+    if (id) {
         bsoncxx::oid actualId = *id;
         borders.setMineId(actualId);
-  }
-  insertDocument = borders.convertToBsonDocument();
 
-  std::string resString = (DatabaseHandler::insertDocument("bordersTest", insertDocument) ? ("Meje uspešno vstavljen!") : ("Pri vstavlajnju mej je prišlo do napake!"));
-  bsoncxx::document::value documentTemp = bsoncxx::builder::stream::document{} << "message" << id->to_string() << bsoncxx::builder::stream::finalize;
-//  bsoncxx::document::value documentTemp = bsoncxx::builder::stream::document{} << "message" << resString << bsoncxx::builder::stream::finalize;
-  bsoncxx::document::view viewTemp = documentTemp.view();
-  std::string jsonStr = bsoncxx::to_json(viewTemp);
+        insertDocument = borders.convertToBsonDocument();
+        bool bordersInserted = DatabaseHandler::insertDocument("bordersTest", insertDocument);
 
-  response.body() = jsonStr;
+        if (bordersInserted) {
+            // Get the mine document and add geometry array to it
+            bsoncxx::document::value mineDoc = temp.convertToBsonDocument();
+            bsoncxx::document::value bordersDoc = borders.convertToBsonDocument();
+
+            // Create the combined document with geometry as an array
+            auto builder = bsoncxx::builder::stream::document{};
+
+            // Add all mine fields
+            for (auto&& element : mineDoc.view()) {
+                builder << element.key() << element.get_value();
+            }
+
+            // Add geometry as an array containing the borders document
+            builder << "geometry" << bsoncxx::builder::stream::open_array
+                << bordersDoc
+                << bsoncxx::builder::stream::close_array;
+
+            bsoncxx::document::value responseDoc = builder << bsoncxx::builder::stream::finalize;
+
+            std::string responseJson = bsoncxx::to_json(responseDoc.view());
+
+            // Set response body for Boost Beast
+            response.body() = responseJson;
+            response.set(boost::beast::http::field::content_type, "application/json");
+            response.prepare_payload();
+
+            // Send via WebSocket
+            WebSocketController::sendBroadcast("rudnikSubscribe", responseDoc);
+        }
+        else {
+            // Handle borders insertion failure
+            bsoncxx::document::value errorDoc = bsoncxx::builder::stream::document{}
+                << "success" << false
+                << "message" << "Pri vstavlajnju mej je prišlo do napake!"
+                << bsoncxx::builder::stream::finalize;
+
+            std::string errorJson = bsoncxx::to_json(errorDoc.view());
+            response.body() = errorJson;
+            response.set(boost::beast::http::field::content_type, "application/json");
+            response.prepare_payload();
+        }
+    }
+    else {
+        // Handle mine insertion failure
+        bsoncxx::document::value errorDoc = bsoncxx::builder::stream::document{}
+            << "success" << false
+            << "message" << "Pri vstavlajnju rudnika je prišlo do napake!"
+            << bsoncxx::builder::stream::finalize;
+
+        std::string errorJson = bsoncxx::to_json(errorDoc.view());
+        response.body() = errorJson;
+        response.set(boost::beast::http::field::content_type, "application/json");
+        response.prepare_payload();
+    }
 }
 
 // Funkcija za pridobivanje rudnika
@@ -673,35 +721,88 @@ void MineController::deleteMineral(const request &request, response &response, R
     response.body() = bsoncxx::to_json(documentTemp.view());
 }
 
-void MineController::updateMine(const request &request, response &response, Router* r){
+void MineController::updateMine(const request& request, response& response, Router* r) {
     bsoncxx::document::value document = bsoncxx::from_json(request.body());
     bsoncxx::document::view view = document.view();
+
+    std::string token = "";
+    auto it = request.find(boost::beast::http::field::cookie);
+    if (it != request.end())
+    {
+        auto cookie_header = std::string(it->value());
+        size_t pos = cookie_header.find("jwt=");
+        if (pos != std::string::npos) {
+            size_t start = pos + 4;
+            size_t end = cookie_header.find(";", start);
+            token = cookie_header.substr(start, end - start);
+        }
+    }
 
     bsoncxx::builder::stream::document query;
     bsoncxx::document::element id = view["id"];
     auto stringView = id.get_string().value;
     std::string str_val(stringView.data(), stringView.size());
     bsoncxx::oid mineID = bsoncxx::oid(str_val);
+
+
+    mongocxx::options::find opts{};
+    opts.projection(bsoncxx::builder::stream::document{} << "ownerId" << 1 << "_id" << 0 << bsoncxx::builder::stream::finalize);
+
+    bsoncxx::builder::stream::document filters;
+    filters << "_id" << mineID;
+    bsoncxx::document::value docValue = filters << bsoncxx::builder::stream::finalize;
+    std::vector<bsoncxx::document::value> result = DatabaseHandler::getSpecificColumnFromDocument("users", opts, docValue);
+
+    if (result.size() == 0) {
+        bsoncxx::document::value documentTemp = bsoncxx::builder::stream::document{} << "message" << "Napaka ob posodabljanju rudnika!" << bsoncxx::builder::stream::finalize;
+        bsoncxx::document::view viewTemp = documentTemp.view();
+        std::string jsonStr = bsoncxx::to_json(viewTemp);
+
+        response.body() = jsonStr;
+        return;
+    }
+
+    if (token.empty()) {
+        bsoncxx::document::value documentTemp = bsoncxx::builder::stream::document{} << "message" << "Potrebna prijava!" << bsoncxx::builder::stream::finalize;
+        bsoncxx::document::view viewTemp = documentTemp.view();
+        std::string jsonStr = bsoncxx::to_json(viewTemp);
+
+        response.body() = jsonStr;
+        return;
+    }
+
+    bsoncxx::oid userId = UserModel::getUserIdFromJWT(token);
+
+    if (userId != result[0].view()["ownerId"].get_oid().value) {
+        bsoncxx::document::value documentTemp = bsoncxx::builder::stream::document{} << "message" << "Rudnik lahko updata samo lastnik!" << bsoncxx::builder::stream::finalize;
+        bsoncxx::document::view viewTemp = documentTemp.view();
+        std::string jsonStr = bsoncxx::to_json(viewTemp);
+
+        response.body() = jsonStr;
+        return;
+    }
+
+
     query << "_id" << mineID;
 
     bsoncxx::builder::stream::document updateQuery;
     bsoncxx::document::element element = view["name"];
-    if(element && element.type() == bsoncxx::type::k_string){
+    if (element && element.type() == bsoncxx::type::k_string) {
         updateQuery << "name" << element.get_string().value;
     }
 
     element = view["municipality"];
-    if(element && element.type() == bsoncxx::type::k_string){
+    if (element && element.type() == bsoncxx::type::k_string) {
         updateQuery << "municipality" << element.get_string().value;
     }
 
     element = view["status"];
-    if(element && element.type() == bsoncxx::type::k_int32){
+    if (element && element.type() == bsoncxx::type::k_int32) {
         updateQuery << "status" << element.get_int32().value;
     }
 
     element = view["type"];
-    if(element && element.type() == bsoncxx::type::k_int32){
+    if (element && element.type() == bsoncxx::type::k_int32) {
         updateQuery << "type" << element.get_int32().value;
     }
 
