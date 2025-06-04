@@ -13,6 +13,16 @@ void UserController::saveUser(const request& request, response& response, Router
 
     UserModel user;
     user.getFromBsonDocument(view);
+
+    if(!user.validateUserData(validationType::REGISTRATION)){
+        bsoncxx::document::value documentTemp = bsoncxx::builder::stream::document{} << "message" << "Napaka ob prijavi: Nepravilni podatki" << bsoncxx::builder::stream::finalize;
+        bsoncxx::document::view viewTemp = documentTemp.view();
+        std::string jsonStr = bsoncxx::to_json(viewTemp);
+
+        response.body() = jsonStr;
+        return;
+    }
+
     user.hashPassword();
     bsoncxx::document::value temp = user.convertToBsonDocument();
 
@@ -69,7 +79,15 @@ void UserController::loginUser(const request &request, response &response, Route
     UserModel temp;
     temp.getFromBsonDocumentLogin(view);
 
-    std::cout << temp.toString() << std::endl;
+    if(!temp.validateUserData(validationType::LOGIN)){
+        bsoncxx::document::value documentTemp = bsoncxx::builder::stream::document{} << "message" << "Napaka ob prijavi: Nepravilni podatki" << bsoncxx::builder::stream::finalize;
+        bsoncxx::document::view viewTemp = documentTemp.view();
+        std::string jsonStr = bsoncxx::to_json(viewTemp);
+
+        response.body() = jsonStr;
+        return;
+    }
+
 
     mongocxx::options::find opts{};
     opts.projection(bsoncxx::builder::stream::document{} << "password_hash" << 1 << "_id" << 1 << bsoncxx::builder::stream::finalize);

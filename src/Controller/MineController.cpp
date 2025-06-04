@@ -591,7 +591,7 @@ void MineController::getMinesByYear(const request &request, response &response, 
     bsoncxx::document::element from = view["from"];
     bsoncxx::document::element to = view["to"];
 
-    query << "year" << bsoncxx::builder::stream::open_document
+    query << "startYear" << bsoncxx::builder::stream::open_document
           << "$gte" << from.get_int32().value
           << "$lte" << to.get_int32().value
           << bsoncxx::builder::stream::close_document;
@@ -841,7 +841,7 @@ void MineController::getStatistics(const request& req, response& res, Router* r)
         << "minesPerYear" << bsoncxx::builder::stream::open_array
         << bsoncxx::builder::stream::open_document
         << "$group" << bsoncxx::builder::stream::open_document
-        << "_id" << "$year"  
+        << "_id" << "startYear"
         << "count" << bsoncxx::builder::stream::open_document << "$sum" << 1 << bsoncxx::builder::stream::close_document
         << bsoncxx::builder::stream::close_document
         << bsoncxx::builder::stream::close_document
@@ -931,7 +931,7 @@ void MineController::getStatistics(const request& req, response& res, Router* r)
             }
 
             mpy_builder << bsoncxx::builder::stream::open_document
-                << "year" << year
+                << "startYear" << year
                 << "count" << doc["count"].get_int32().value
                 << bsoncxx::builder::stream::close_document;
         }

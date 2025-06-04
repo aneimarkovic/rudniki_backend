@@ -1,7 +1,7 @@
 //  Created by Anei Markovič 22.5.2025
 #include "Model/MineModel.hpp"
 
-MineModel::MineModel(std::string name, bsoncxx::oid ownerId, MineStatus status, MineType type, std::vector<MineralModel> minerals, std::vector<InfrastructureModel> infrastructure, std::vector<WorkerModel> workers, timeStamp createdAt, timeStamp modifiedAt,  std::string municipality, int year, double lon, double lat)
+MineModel::MineModel(std::string name, bsoncxx::oid ownerId, MineStatus status, MineType type, std::vector<MineralModel> minerals, std::vector<InfrastructureModel> infrastructure, std::vector<WorkerModel> workers, timeStamp createdAt, timeStamp modifiedAt,  std::string municipality, int startYear, int endYear, double lon, double lat)
     : name(name),
       ownerId(ownerId),
       status(status),
@@ -9,7 +9,8 @@ MineModel::MineModel(std::string name, bsoncxx::oid ownerId, MineStatus status, 
       minerals(minerals),
       infrastructure(infrastructure),
       workers(workers),
-      year(year),
+      startYear(startYear),
+      endYear(endYear),
       municipality(municipality),
       lat(lat),
       lon(lon),
@@ -34,7 +35,8 @@ MineModel::MineModel()
     std::chrono::year_month_day ymd = std::chrono::year_month_day(today);
     std::chrono::year year = ymd.year();
 
-    this->year = static_cast<int>(year);
+    this->startYear = static_cast<int>(year);
+    this->endYear = static_cast<int>(year);
     this->municipality = "";
     this->lat = 0.00;
     this->lon = 0.00;
@@ -100,9 +102,14 @@ void MineModel::getFromBsonDocument(const bsoncxx::document::view &docView)
             this->municipality = extractStringFromBSON(docView, "municipality");
         }
 
-        bsoncxx::document::element tempYear = docView["year"];
+        bsoncxx::document::element tempYear = docView["startYear"];
         if(tempYear && tempYear.type() == bsoncxx::type::k_int32){
-            this->year = extractIntFromBSON(docView, "year");
+            this->startYear = extractIntFromBSON(docView, "startYear");
+        }
+
+        tempYear = docView["endYear"];
+        if(tempYear && tempYear.type() == bsoncxx::type::k_int32){
+            this->endYear = extractIntFromBSON(docView, "endYear");
         }
 
         bsoncxx::document::element tempLon = docView["lon"];
@@ -152,7 +159,8 @@ bsoncxx::document::value MineModel::convertToBsonDocument()
     bsoncxx::builder::basic::document builder{};
     builder.append(bsoncxx::builder::basic::kvp("_id", id));
     builder.append(bsoncxx::builder::basic::kvp("name", this->name));
-    builder.append(bsoncxx::builder::basic::kvp("year", this->year));
+    builder.append(bsoncxx::builder::basic::kvp("startYear", this->startYear));
+    builder.append(bsoncxx::builder::basic::kvp("endYear", this->endYear));
     builder.append(bsoncxx::builder::basic::kvp("municipality", this->municipality));
     builder.append(bsoncxx::builder::basic::kvp("lon", this->lon));
     builder.append(bsoncxx::builder::basic::kvp("lat", this->lat));

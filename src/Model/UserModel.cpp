@@ -25,7 +25,7 @@ void UserModel::getFromBsonDocument(const bsoncxx::document::view &docView)
         this->username = extractStringFromBSON(docView, "username");
         this->email = extractStringFromBSON(docView, "email");
         this->password = extractStringFromBSON(docView, "password");
-        this->birthDate = extractDateFromBSON(docView, "BirthDate");
+        this->birthDate = extractDateFromBSON(docView, "birthDate");
 
         this->created = extractDateFromBSON(docView, "created");
         this->modified = extractDateFromBSON(docView, "modified");
@@ -64,10 +64,12 @@ bool UserModel::validateUserData(validationType type) const
 
     // USERNAME
     std::regex usernameRegex("^(?:[a-zA-Z0-9_-]){3,}$");
-    if (!std::regex_match(this->username, usernameRegex))
-    {
-        // std::cout << "Username ni ok!\n";
-        return false;
+    if(type == LOGIN && this->username != "" || type == REGISTRATION || type == UPDATE){
+        if (!std::regex_match(this->username, usernameRegex))
+        {
+            // std::cout << "Username ni ok!\n";
+            return false;
+        }
     }
 
     // PASSWORD
@@ -80,7 +82,7 @@ bool UserModel::validateUserData(validationType type) const
 
     // MAIL
     std::regex emailRegex(R"(^([a-zA-Z0-9_\-\.\+]+)@([a-zA-Z0-9_\-\.\+]+\.[a-zA-Z]{2,})$)");
-    if ((type == REGISTRATION || type == UPDATE_EMAIL))
+    if ((type == REGISTRATION || type == UPDATE_EMAIL || (type == LOGIN && this->email != "")))
     {
         if (this->email == "" || !std::regex_match(this->email, emailRegex))
         {

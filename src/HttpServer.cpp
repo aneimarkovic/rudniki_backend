@@ -45,38 +45,6 @@ void HttpServer::parseRequest(tcp::socket socket)
 /*Metoda, ki pošlje zahtevo routerju*/
 void HttpServer::getRequest(tcp::socket socket)
 {
-    // std::cout << "Pošiljam zahtevo na router...\n";
-
-    // bsoncxx::document::view filters{};
-    // std::string collName = "mines";
-    // std::vector<bsoncxx::document::value> scrapperVec = DatabaseHandler::fetchMultipleDocuments(collName, filters);
-
-    // std::string temp = "{";
-    // int counter = 0;
-    // for (auto &&i : scrapperVec)
-    // {
-    //     // std::cout << bsoncxx::to_json(i) << std::endl;
-    //     temp += "\"" + std::to_string(counter) + "\":" + bsoncxx::to_json(i);
-    //     if(counter < scrapperVec.size()-1){
-    //         temp += ",";
-    //     }
-    //     counter++;
-    // }
-
-    // temp += "}";
-
-    // boost::beast::flat_buffer buffer;
-    // http::request<http::string_body> req;
-    // http::read(socket, buffer, req);
-
-    // http::response<http::string_body> res{http::status::ok, req.version()};
-    // res.set(http::field::server, "Rudnik http server");
-    // res.set(http::field::content_type, "application/json");
-    // res.set(http::field::access_control_allow_origin, "*");
-    // res.body() = temp;
-    // res.prepare_payload();
-    // http::write(socket, res);
-
     beast::flat_buffer buffer;
     beast::error_code errorCode;
     http::request<http::string_body> req;
@@ -103,7 +71,11 @@ void HttpServer::getRequest(tcp::socket socket)
 
     // ROUTER CALL - pass the stream
     Router newRoute;
-    newRoute.handleRequest(req, res, &stream);
+    try{
+        newRoute.handleRequest(req, res, &stream);
+    } catch (const std::exception &ex){
+        std::cout << "NAPAKA PRI HANDLANJU REQ: " << ex.what() << std::endl;
+    }
 
     if (!websocket::is_upgrade(req)) {
         res.set(http::field::server, "Rudnik http server");
@@ -112,7 +84,11 @@ void HttpServer::getRequest(tcp::socket socket)
         res.set(http::field::access_control_allow_origin, "http://127.0.0.1:3000");
         res.set(http::field::access_control_allow_headers, "Content-Type, Authorization, X-Requested-With, Accept");
         res.prepare_payload();
-        http::write(stream, res);
+        try{
+            http::write(stream, res);
+        }catch (const std::exception &ex){
+            std::cout << "NAPAKA PRI PISANJU RES: " << ex.what() << std::endl;
+        }
     }
 }
 
