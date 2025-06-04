@@ -173,8 +173,10 @@ void Router::routeSelector(http::verb method, std::string& URL, const request& r
 	// TODO Naredi tu da gre na 404
 }
 
-void Router::handleRequest(const request& request, response& response)
+void Router::handleRequest(const request& request, response& response, boost::beast::tcp_stream* stream)
 {
+	currentStream = stream;
+
 	http::verb requestMethod = request.method();
 
 	boost::string_view target_view = request.target();

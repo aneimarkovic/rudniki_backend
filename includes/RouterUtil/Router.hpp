@@ -52,8 +52,12 @@ private:
 	// Univerzalna funkcija, da se izogibamo ponavljanju znotraj create funkcij
 	static void createRoute(requestType type, std::string& URL, routeFunction function);
 
+	boost::beast::tcp_stream* currentStream = nullptr;
 
 public:
+
+	void set_stream(boost::beast::tcp_stream* stream) { currentStream = stream; }
+	boost::beast::tcp_stream* get_stream() { return currentStream; }
 
 	// Vector za shranjevanje URL argumentov. Primer /:id shrani id 
 	std::vector<std::string> UrlArguments;
@@ -64,5 +68,5 @@ public:
 	static void createPutRoute(std::string URL, routeFunction function);
 	static void createDeleteRoute(std::string URL, routeFunction function);
 
-	void handleRequest(const request& request, response& response);
+	void handleRequest(const request& request, response& response, boost::beast::tcp_stream* stream);
 };

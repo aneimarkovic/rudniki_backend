@@ -18,6 +18,10 @@ add_library(RudnikCore STATIC
         ${CORE_APP_SOURCES}
 )
 
+if(MSVC)
+    target_compile_options(RudnikCore PRIVATE /bigobj)
+endif()
+
 target_include_directories(RudnikCore PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/../includes
         ${CMAKE_CURRENT_SOURCE_DIR}
@@ -55,6 +59,7 @@ if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${MAIN_APP_ENTRY_POINT_FILE}")
             ${CMAKE_CURRENT_SOURCE_DIR}/../includes
             ${CMAKE_CURRENT_SOURCE_DIR}
     )
+
 else()
     message(WARNING "Glavna .cpp datoteka aplikacije ('${MAIN_APP_ENTRY_POINT_FILE}') ni bila najdena v mapi 'src'. Izvršljiva datoteka 'rudnik_app' ne bo ustvarjena.")
 endif()

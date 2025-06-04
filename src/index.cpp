@@ -11,6 +11,7 @@
 #include "RouterUtil/Router.hpp"
 #include "Controller/MineController.hpp"
 #include "Controller/UserController.hpp"
+#include "WebSocket/WebsocketController.hpp"
 
 void testDatabaseInsert()
 {
@@ -87,6 +88,9 @@ int main()
 
         Router::createGetRoute("/user/mines/:id", MineController::getMineBasedOnOwner);
         Router::createGetRoute("/user/:id", UserController::getUser);
+
+        // WEBHOOKS
+        WebSocketController::createWebSocket("/hooks/rudnikSubscribe", "rudnikSubscribe");
 
 //        DatabaseHandler::create2dsphereIndex("bordersTest", "geometry") ? std::cout << "OK\n" : std::cout << "NE OK\n";
         HttpServer server("127.0.0.1", "8080");
