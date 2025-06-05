@@ -841,7 +841,7 @@ void MineController::getStatistics(const request& req, response& res, Router* r)
         << "minesPerYear" << bsoncxx::builder::stream::open_array
         << bsoncxx::builder::stream::open_document
         << "$group" << bsoncxx::builder::stream::open_document
-        << "_id" << "startYear"
+        << "_id" << "$startYear"
         << "count" << bsoncxx::builder::stream::open_document << "$sum" << 1 << bsoncxx::builder::stream::close_document
         << bsoncxx::builder::stream::close_document
         << bsoncxx::builder::stream::close_document
