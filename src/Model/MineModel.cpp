@@ -114,12 +114,12 @@ void MineModel::getFromBsonDocument(const bsoncxx::document::view &docView)
 
         bsoncxx::document::element tempLon = docView["lon"];
         if(tempLon && tempLon.type() == bsoncxx::type::k_double){
-            this->lon = extractIntFromBSON(docView, "lon");
+            this->lon = extractDoubleFromBSON(docView, "lon");
         }
 
         bsoncxx::document::element tempLat = docView["lat"];
         if(tempLat && tempLat.type() == bsoncxx::type::k_double){
-            this->lat = extractIntFromBSON(docView, "lat");
+            this->lat = extractDoubleFromBSON(docView, "lat");
         }
 
         bsoncxx::array::view tempMinerals = docView["minerals"].get_array().value;

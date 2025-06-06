@@ -79,7 +79,9 @@ double WorkerModel::extractDoubleFromBSON(const bsoncxx::document::view &docView
         {
             if (element.type() == bsoncxx::type::k_double)
             {
-                return element.get_double().value;
+                return (double)element.get_double().value;
+            } else if (element.type() == bsoncxx::type::k_int32){
+                return (double)element.get_int32().value;
             }
             else
             {
