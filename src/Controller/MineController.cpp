@@ -511,12 +511,22 @@ void MineController::getFilteredMines(const request &request, response &response
 void MineController::getMineBasedOnOwner(const request &request, response &response, Router *r){
     auto filters = bsoncxx::builder::basic::make_document(bsoncxx::builder::basic::kvp("ownerId", bsoncxx::oid{r->UrlArguments[0]}));
 
-    std::optional<bsoncxx::document::value> mineDoc = DatabaseHandler::fetchSingleDocument("mines", filters);
-    if (mineDoc)
+    std::vector<bsoncxx::document::value> result = DatabaseHandler::fetchMultipleDocuments("mines", filters);
+    if (!result.empty())
     {
-        bsoncxx::document::view viewTemp = mineDoc->view();
-        std::string jsonStr = bsoncxx::to_json(viewTemp);
-        response.body() = jsonStr;
+        std::string temp = "{";
+        int counter = 0;
+        for (bsoncxx::document::value& it : result)
+        {
+//      std::cout << bsoncxx::to_json(it) << std::endl;
+            temp += "\"" + std::to_string(counter) + "\":" + bsoncxx::to_json(it);
+            if(counter < result.size() - 1){
+                temp += ",";
+            }
+            counter++;
+        }
+        temp += "}";
+        response.body() += temp;
     }
     else
     {
