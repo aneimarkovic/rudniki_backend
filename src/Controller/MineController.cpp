@@ -837,10 +837,10 @@ void MineController::updateMine(const request& request, response& response, Rout
     bsoncxx::builder::stream::document filters;
     filters << "_id" << mineID;
     bsoncxx::document::value docValue = filters << bsoncxx::builder::stream::finalize;
-    std::vector<bsoncxx::document::value> result = DatabaseHandler::getSpecificColumnFromDocument("users", opts, docValue);
+    std::vector<bsoncxx::document::value> result = DatabaseHandler::getSpecificColumnFromDocument("mines", opts, docValue);
 
     if (result.size() == 0) {
-        bsoncxx::document::value documentTemp = bsoncxx::builder::stream::document{} << "message" << "Napaka ob posodabljanju rudnika lastnik rudnika in prijavljeni uporabnik se ne ujemata!" << bsoncxx::builder::stream::finalize;
+        bsoncxx::document::value documentTemp = bsoncxx::builder::stream::document{} << "message" << "Napaka ob posodabljanju rudnik ni bil najden v bazi!" << bsoncxx::builder::stream::finalize;
         bsoncxx::document::view viewTemp = documentTemp.view();
         std::string jsonStr = bsoncxx::to_json(viewTemp);
 
@@ -848,7 +848,7 @@ void MineController::updateMine(const request& request, response& response, Rout
         return;
     }
 
-    if (token.empty()) {
+    if (token == "") {
         bsoncxx::document::value documentTemp = bsoncxx::builder::stream::document{} << "message" << "Potrebna prijava!" << bsoncxx::builder::stream::finalize;
         bsoncxx::document::view viewTemp = documentTemp.view();
         std::string jsonStr = bsoncxx::to_json(viewTemp);

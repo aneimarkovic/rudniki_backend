@@ -83,6 +83,7 @@ void HttpServer::getRequest(tcp::socket socket)
         res.set(http::field::access_control_allow_credentials, "true");
         res.set(http::field::access_control_allow_origin, "http://127.0.0.1:3000");
         res.set(http::field::access_control_allow_headers, "Content-Type, Authorization, X-Requested-With, Accept");
+        res.set(http::field::access_control_allow_methods, "GET, POST, PUT, DELETE, OPTIONS");
         res.prepare_payload();
         try{
             http::write(stream, res);
