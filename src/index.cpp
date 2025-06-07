@@ -92,7 +92,7 @@ int main()
         // WEBHOOKS
         WebSocketController::createWebSocket("/hooks/rudnikSubscribe", "rudnikSubscribe");
 
-//        DatabaseHandler::create2dsphereIndex("bordersTest", "geometry") ? std::cout << "OK\n" : std::cout << "NE OK\n";
+        DatabaseHandler::create2dsphereIndex("bordersTest", "geometry") ? std::cout << "OK\n" : std::cout << "NE OK\n";
         HttpServer server("127.0.0.1", "8080");
         server.runServer();
     }

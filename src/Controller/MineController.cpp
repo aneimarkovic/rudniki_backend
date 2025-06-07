@@ -313,6 +313,8 @@ void MineController::generateMineralsValue(const request &request, response &res
     )
     );
 
+//    std::cout <<  bsoncxx::to_json(query.view()) << std::endl;
+
     std::vector<bsoncxx::document::value>
           results = DatabaseHandler::fetchMultipleDocuments("bordersTest", query.view());
 
@@ -329,15 +331,90 @@ void MineController::generateMineralsValue(const request &request, response &res
   }
 
     bsoncxx::builder::stream::document filterBuilder;
-    auto array_builder = bsoncxx::builder::stream::array{};
+    bsoncxx::builder::stream::document filterBuilderHistory;
+
+    auto arrayBuilder = bsoncxx::builder::stream::array{};
+    auto arrayBuilderHistory = bsoncxx::builder::stream::array{};
     for (const bsoncxx::oid& oid : vecOfMines)
     {
-        array_builder << oid;
-//        std::cout << "ID: " << oid.to_string() << std::endl;
+//        std::cout << oid.to_string() << std::endl;
+        arrayBuilder << oid;
+        arrayBuilderHistory << oid;
+    }
+
+    mongocxx::pipeline pipeline{};
+
+    pipeline.match(
+            bsoncxx::builder::stream::document{}
+                    << "mineId" << bsoncxx::builder::stream::open_document
+                    << "$in" << arrayBuilderHistory
+                    << bsoncxx::builder::stream::close_document
+                    << bsoncxx::builder::stream::finalize
+    );
+
+    pipeline.unwind("$minerals");
+
+    pipeline.group(
+            bsoncxx::builder::stream::document{}
+                    << "_id" << bsoncxx::builder::stream::open_document
+                    << "mineId" << "$mineId"
+                    << "mineralName" << "$minerals.name"
+                    << bsoncxx::builder::stream::close_document
+                    << "avgQuantity" << bsoncxx::builder::stream::open_document
+                    << "$avg" << "$minerals.quantity"
+                    << bsoncxx::builder::stream::close_document
+                    << bsoncxx::builder::stream::finalize
+    );
+
+    pipeline.project(
+            bsoncxx::builder::stream::document{}
+                    << "_id" << 0
+//                    << "mineId" << "$_id.mineId"
+                    << "mineralName" << "$_id.mineralName"
+                    << "avgQuantity" << 1
+                    << bsoncxx::builder::stream::finalize
+    );
+
+    struct AvgHistory{
+        int mineralName;
+        double avgQuantity;
+        int counter = 1;
+    };
+
+    std::vector<bsoncxx::document::value> historyResult = DatabaseHandler::fetchMultipleDocumentsAggregate("history", pipeline);
+
+    std::vector<AvgHistory> vecOfAvgHistory;
+    for(bsoncxx::document::value& it : historyResult){
+        view = it.view();
+
+        AvgHistory temp;
+        temp.mineralName = view["mineralName"].get_int32();
+        temp.avgQuantity = view["avgQuantity"].get_double();
+        vecOfAvgHistory.push_back(temp);
+        std::cout << bsoncxx::to_json(it) << std::endl;
+    }
+
+    std::vector<AvgHistory> vecOfAllHistory;
+    for(AvgHistory & it : vecOfAvgHistory){
+        bool found = false;
+        int index = 0;
+        for(int j = 0; j < vecOfAllHistory.size(); j++){
+            if(it.mineralName == vecOfAllHistory[j].mineralName){
+                found = true;
+                index = j;
+            }
+        }
+
+        if(!found){
+            vecOfAllHistory.push_back(it);
+        } else{
+            vecOfAllHistory[index].avgQuantity += it.avgQuantity;
+            vecOfAllHistory[index].counter++;
+        }
     }
 
     filterBuilder << "_id" << bsoncxx::builder::stream::open_document
-                   << "$in" << array_builder
+                   << "$in" << arrayBuilder
                    << bsoncxx::builder::stream::close_document;
 
     bsoncxx::document::value filterDoc = filterBuilder << bsoncxx::builder::stream::finalize;
@@ -348,49 +425,39 @@ void MineController::generateMineralsValue(const request &request, response &res
             "mines", opts, std::move(filterDoc)
     );
 
+
     std::string temp = "{";
+
+    temp += "\"minerals\":[";
     int counter = 0;
-    for(bsoncxx::document::value& it : mineralsDoc){
-//        std::cout << bsoncxx::to_json(it) << std::endl;
-//        response.body() += bsoncxx::to_json(it);
-        temp += "\"" + std::to_string(counter) + "\":" + bsoncxx::to_json(it);
-        if(counter < results.size() - 1){
+    for (bsoncxx::document::value& it : mineralsDoc) {
+        temp += bsoncxx::to_json(it);
+        if (counter < mineralsDoc.size() - 1) {
             temp += ",";
         }
         counter++;
     }
+    temp += "],";
+
+    temp += "\"history\":[";
+    counter = 0;
+    for (AvgHistory &it : vecOfAllHistory) {
+        it.avgQuantity /= (it.counter * 150);
+
+        temp += "{";
+        temp += "\"mineralName\":" + std::to_string(it.mineralName) + ", ";
+        temp += "\"avgQuantity\":" + std::to_string(it.avgQuantity);
+        temp += "}";
+        if (counter < vecOfAllHistory.size() - 1) {
+            temp += ",";
+        }
+        counter++;
+    }
+    temp += "]";
+
     temp += "}";
+
     response.body() += temp;
-
-//    response.body() += temp;
-
-  //    std::string geojson = "{ \n"
-  //                          "\"type\": \"FeatureCollection\", \n"
-  //                          "\"features\":[\n"
-  //                          "{\n"
-  //                          "\"type\": \"Feature\",\n"
-  //                          "\"properties\": {},\n"
-  //                          "\"geometry\":{\n"
-  //                          "\"type\": \"Polygon\",\n"
-  //                          "\"coordinates\":[\n"
-  //                          "[\n";
-  //
-  //    for(int i = 0; i < pointVec.size(); i++){
-  //        if(i < pointVec.size() - 1){
-  //            geojson += pointVec[i].toString() + ",\n";
-  //        } else {
-  //            geojson += pointVec[i].toString() + "\n";
-  //        }
-  //    }
-
-  //    geojson += "]\n"
-  //               "]\n"
-  //               "}\n"
-  //               "}\n"
-  //               "]\n"
-  //               "}\n";
-
-  //    response.body() = geojson;
 }
 //Funkcija, ki vrne vse razpoložljive rudnika pridobljene z scraperom
 void MineController::getScrapperMines(const request &request, response &response, Router* r){
@@ -764,7 +831,7 @@ void MineController::updateMine(const request& request, response& response, Rout
     std::vector<bsoncxx::document::value> result = DatabaseHandler::getSpecificColumnFromDocument("users", opts, docValue);
 
     if (result.size() == 0) {
-        bsoncxx::document::value documentTemp = bsoncxx::builder::stream::document{} << "message" << "Napaka ob posodabljanju rudnika!" << bsoncxx::builder::stream::finalize;
+        bsoncxx::document::value documentTemp = bsoncxx::builder::stream::document{} << "message" << "Napaka ob posodabljanju rudnika lastnik rudnika in prijavljeni uporabnik se ne ujemata!" << bsoncxx::builder::stream::finalize;
         bsoncxx::document::view viewTemp = documentTemp.view();
         std::string jsonStr = bsoncxx::to_json(viewTemp);
 
