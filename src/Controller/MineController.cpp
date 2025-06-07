@@ -598,7 +598,13 @@ void MineController::getMineBasedOnOwner(const request &request, response &respo
     }
     else
     {
+        bsoncxx::document::value documentTemp = bsoncxx::builder::stream::document{} << "message" << "Prijavljeni uporabnik nima rudnikov!" << bsoncxx::builder::stream::finalize;
+        bsoncxx::document::view viewTemp = documentTemp.view();
+        std::string jsonStr = bsoncxx::to_json(viewTemp);
+
+        response.body() = jsonStr;
         std::cout << "Neobstaja\n";
+        return;
     }
 }
 //Funkcija, ki vrne vse rudnike
