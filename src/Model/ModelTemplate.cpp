@@ -86,7 +86,10 @@ timeStamp ModelTemplate::extractDateFromBSON(const bsoncxx::document::view &docV
         std::cerr << "Warning: BSON exception while accessing field '" << key << "': " << e.what() << std::endl;
     }
 }
-
+/*
+    Funkcija vzame ime polja v BSON in ga da v int format za uporabo
+    Če polja ni vrne error
+*/
 int ModelTemplate::extractIntFromBSON(const bsoncxx::document::view &docView, const char *key)
 {
     try
@@ -124,7 +127,10 @@ timeStamp ModelTemplate::getModifiedCreated() const
 {
     return this->modified;
 }
-
+/*
+    Funkcija vzame ime polja v BSON in ga da v double format za uporabo
+    Če polja ni vrne error
+*/
 double ModelTemplate::extractDoubleFromBSON(const bsoncxx::document::view &docView, const char *key)
 {
     try

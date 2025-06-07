@@ -122,7 +122,7 @@ void UserController::loginUser(const request &request, response &response, Route
 
     response.body() = jsonStr;
 }
-
+//Funkcija, ki pridobi user-ja
 void UserController::getUser(const request &request, response &response, Router* r){
     auto filters = bsoncxx::builder::basic::make_document(bsoncxx::builder::basic::kvp("_id", bsoncxx::oid{r->UrlArguments[0]}));
 
@@ -138,7 +138,7 @@ void UserController::getUser(const request &request, response &response, Router*
         std::cout << "Neobstaja\n";
     }
 }
-
+//Funkcija ki posodobi userja
 void UserController::updateUser(const request &request, response &response, Router* r){
     bsoncxx::document::value document = bsoncxx::from_json(request.body());
     bsoncxx::document::view view = document.view();

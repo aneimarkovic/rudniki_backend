@@ -480,7 +480,7 @@ void MineController::getScrapperMines(const request &request, response &response
      temp += "}";
     response.body() = temp;
 }
-
+//Funkcija, ki vrne vse filtrirane rudnike
 void MineController::getFilteredMines(const request &request, response &response, Router* r){
     bsoncxx::document::value document = bsoncxx::from_json(request.body());
     bsoncxx::document::view view = document.view();
@@ -575,6 +575,7 @@ void MineController::getFilteredMines(const request &request, response &response
     temp += "}";
     response.body() += temp;
 }
+//Funkcija, ki vrne vse uporabnikove rudnike
 void MineController::getMineBasedOnOwner(const request &request, response &response, Router *r){
     auto filters = bsoncxx::builder::basic::make_document(bsoncxx::builder::basic::kvp("ownerId", bsoncxx::oid{r->UrlArguments[0]}));
 
@@ -600,7 +601,7 @@ void MineController::getMineBasedOnOwner(const request &request, response &respo
         std::cout << "Neobstaja\n";
     }
 }
-
+//Funkcija, ki vrne vse rudnike
 void MineController::getAllMines(const request &request, response &response, Router* r){
     mongocxx::pipeline pipeline;
     pipeline.lookup(
@@ -627,7 +628,7 @@ void MineController::getAllMines(const request &request, response &response, Rou
     temp += "}";
     response.body() += temp;
 }
-
+//Funkcija, ki prejme niz in najde rudnik, ki se prilega temu nizu
 void MineController::searchBar(const request &request, response &response, Router* r){
     bsoncxx::builder::stream::document builder = bsoncxx::builder::stream::document{};
     builder << "name"
@@ -659,7 +660,7 @@ void MineController::searchBar(const request &request, response &response, Route
         response.body() = "Ni takih rudnikov!";
     }
 }
-
+//Funkcija, ki pridobi rudnike v določenem časovnem intervalu
 void MineController::getMinesByYear(const request &request, response &response, Router* r){
     bsoncxx::document::value document = bsoncxx::from_json(request.body());
     bsoncxx::document::view view = document.view();
@@ -692,7 +693,7 @@ void MineController::getMinesByYear(const request &request, response &response, 
         response.body() = "{\"message\": \"Ni rudnikov v tem časovnem intervalu!\"}";
     }
 }
-
+//Funkciaj za brisanje delavcev rudnika
 void MineController::deleteWorker(const request &request, response &response, Router* r){
     bsoncxx::document::value document = bsoncxx::from_json(request.body());
     bsoncxx::document::view view = document.view();
@@ -727,7 +728,7 @@ void MineController::deleteWorker(const request &request, response &response, Ro
     bsoncxx::document::value documentTemp = bsoncxx::builder::stream::document{} << "message" << resString << bsoncxx::builder::stream::finalize;
     response.body() = bsoncxx::to_json(documentTemp.view());
 }
-
+//Funkciaj za brisanje infrastrukture rudnika
 void MineController::deleteInfrastructure(const request &request, response &response, Router* r){
     bsoncxx::document::value document = bsoncxx::from_json(request.body());
     bsoncxx::document::view view = document.view();
@@ -762,7 +763,7 @@ void MineController::deleteInfrastructure(const request &request, response &resp
     bsoncxx::document::value documentTemp = bsoncxx::builder::stream::document{} << "message" << resString << bsoncxx::builder::stream::finalize;
     response.body() = bsoncxx::to_json(documentTemp.view());
 }
-
+//Funkcija za brisanje mineralov rudnika
 void MineController::deleteMineral(const request &request, response &response, Router* r){
     bsoncxx::document::value document = bsoncxx::from_json(request.body());
     bsoncxx::document::view view = document.view();
@@ -797,7 +798,7 @@ void MineController::deleteMineral(const request &request, response &response, R
     bsoncxx::document::value documentTemp = bsoncxx::builder::stream::document{} << "message" << resString << bsoncxx::builder::stream::finalize;
     response.body() = bsoncxx::to_json(documentTemp.view());
 }
-
+//Funkcija za posodabljanje podatkov rudnika
 void MineController::updateMine(const request& request, response& response, Router* r) {
     bsoncxx::document::value document = bsoncxx::from_json(request.body());
     bsoncxx::document::view view = document.view();

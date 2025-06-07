@@ -14,7 +14,9 @@ void BordersModel::setMineId(bsoncxx::oid newId){
 std::vector<PointModel> BordersModel::getPoints(){
     return this->points;
 }
-
+/*
+    Funkcija zgradi BordersModel objekt iz pridobljenega BSON dokumenta
+*/
 void BordersModel::getFromBsonDocument(const bsoncxx::document::view& docView){
     auto tempID = docView["_id"];
     if (tempID && tempID.type() == bsoncxx::type::k_oid)
@@ -30,7 +32,10 @@ void BordersModel::getFromBsonDocument(const bsoncxx::document::view& docView){
         this->points.push_back(temp);
     }
 }
-
+/*
+    Funkcija vzame ime polja v BSON in ga da v double format za uporabo
+    Če polja ni vrne error
+*/
 double BordersModel::extractDoubleFromBSON(const bsoncxx::document::view &docView, const char *key){
     try
     {
@@ -58,6 +63,9 @@ double BordersModel::extractDoubleFromBSON(const bsoncxx::document::view &docVie
         std::cerr << "Warning: BSON exception while accessing field '" << key << "': " << e.what() << std::endl;
     }
 }
+/*
+    Funkcija zgradi BSON dokument iz trenutnega BordersModel objekta
+*/
 bsoncxx::document::value BordersModel::convertToBsonDocument(){
     bsoncxx::builder::basic::document builder{};
     builder.append(bsoncxx::builder::basic::kvp("mineId", this->mineId));

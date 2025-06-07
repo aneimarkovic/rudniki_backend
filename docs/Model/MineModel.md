@@ -10,8 +10,14 @@
   ID lastnika rudnika (uporabnik)
 - `status`:
   Status rudnika
+- `municipality`
+    Občina rudnika
 - `type`:
     Vrsta rudnika
+- `startYear`
+    Leto nastanka rudnika
+- `endYear`
+    Leto zaprtje rudnika
 - `minerals`:
   Seznam mineralov v rudniku
 - `infrastructure`:
@@ -27,3 +33,7 @@
   pretvori objekt v BSON dokument
 - `validateMineData`:
   validira podatke v objektu
+- `mineStatusToString`
+    Pretvori enum v string
+- `mineTypeToString`
+  Pretvori enum v string

@@ -100,6 +100,7 @@ void HttpServer::send(tcp::socket socket, http::response<http::string_body> resp
     // http::write(socket, response);
 }
 
+//Funkcija, ki naredi JWT z podatki uporabnik (ID...)
 std::string HttpServer::createJWT(bsoncxx::oid userId)
 {
     std::string publicKey = "d8700e1e557dd94d3a5d95f96995cff7367c8dc7fefa766ba262402b4fa9a230ce816d0dedfedb03f2579ae538f79c762ffab3f976d3f3df7ea384d502a93d9c0d46cc70bda25293dc8b4b6e74b87bc8050c6cd169d1f5a735a83ba43db78d3b17bc9ae4f96c3c75c567a559cf1e13dca7b35aeed3bfad15e50d0c192bcdaa059ce553761fa98f025fe7512a25ee18621a4b90dca35f5a7e8492baed76b618115bec637a1e532a4280b100d63e0f758b03af7a1afcbeb6c7c37ceb6d3392b10a217cb09900132d35aa45fed6626bfba629060d72cf33ee74bbda232fe84c85730391a01e047c240d475d482e72550be3d2d43111c97e316ac411f77ecbc000c8";
@@ -118,6 +119,7 @@ std::string HttpServer::createJWT(bsoncxx::oid userId)
     return token;
 }
 
+//Funkcija, ki preveri in verifya jwt
 bool HttpServer::verifyJWT(std::string &token)
 {
     try

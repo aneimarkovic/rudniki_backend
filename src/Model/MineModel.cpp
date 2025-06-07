@@ -230,7 +230,7 @@ bool MineModel::validateMineData() const
     }
     return true;
 }
-
+//Funkcija, ki parsa status rudnika, da vrne pravilni string
 std::string MineModel::mineStatusToString(int status) {
     switch (status) {
     case 0: return "ACTIVE";
@@ -240,7 +240,7 @@ std::string MineModel::mineStatusToString(int status) {
     default: return "UNKNOWN_STATUS";
     }
 }
-
+//Funkcija, ki parsa type rudnika, da vrne pravilni string
 std::string MineModel::mineTypeToString(int type) {
     switch (type) {
     case 0: return "SURFACE";

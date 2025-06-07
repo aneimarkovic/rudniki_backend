@@ -14,6 +14,9 @@ std::string PointModel::toString() {
     return "[" + std::to_string(lat) + "," + std::to_string(lon) + "]";
 }
 
+/*
+    Funkcija pretvori iz BSON v objekt Point Model
+*/
 void PointModel::getFromBsonDocument(const bsoncxx::document::view& docView){
     try
     {
@@ -25,7 +28,10 @@ void PointModel::getFromBsonDocument(const bsoncxx::document::view& docView){
         std::cerr << "BSON Deserialization Error for MineralModel: " << exception.what() << std::endl;
     }
 }
-
+/*
+    Funkcija vzame ime polja v BSON in ga da v double format za uporabo
+    Če polja ni vrne error
+*/
 double PointModel::extractDoubleFromBSON(const bsoncxx::document::view &docView, const char *key){
     try
     {
@@ -53,7 +59,9 @@ double PointModel::extractDoubleFromBSON(const bsoncxx::document::view &docView,
         std::cerr << "Warning: BSON exception while accessing field '" << key << "': " << e.what() << std::endl;
     }
 }
-
+/*
+    Funkcija pretvori objekt v BSON
+*/
 bsoncxx::document::value PointModel::convertToBsonDocument(){
     bsoncxx::builder::basic::document builder{};
     builder.append(bsoncxx::builder::basic::kvp("lat", this->lat));

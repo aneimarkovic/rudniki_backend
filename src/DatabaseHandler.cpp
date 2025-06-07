@@ -138,6 +138,7 @@ std::vector<bsoncxx::document::value> DatabaseHandler::fetchMultipleDocuments(co
     }
 }
 
+//Funkcija, ki uporablja funckionalnost aggregate za računanje min, max, avg...
 std::vector<bsoncxx::document::value> DatabaseHandler::fetchMultipleDocumentsAggregate(const std::string &collectionName, const mongocxx::pipeline &pipeline){
     std::vector<bsoncxx::document::value> documents;
     try{
@@ -196,6 +197,7 @@ std::vector<bsoncxx::document::value> DatabaseHandler::getSpecificColumnFromDocu
     }
 }
 
+//Funkcija,ki iz tabele bordersTable ustvari 2dsphere index za geospation queries
 bool DatabaseHandler::create2dsphereIndex(const std::string& collectionName, const std::string& fieldName)
 {
     try {

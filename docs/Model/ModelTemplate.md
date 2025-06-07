@@ -18,6 +18,9 @@ To je Class, ki je template za vse modele mongodb v naši kodi.
 - `extractDateFromBSON`
     Funkcija vzame ime polja v BSON in ga da v date format za uporabo
     Če polja ni vrne error
+- `extractDoubleFromBSON`
+    Funkcija vzame ime polja BSON in ga da v double format za uporabo, 
+    polja ni vrne error
 - `touch` 
     Način, da naredimo posodobitev private spremenljivke modified 
 

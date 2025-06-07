@@ -178,6 +178,9 @@ std::string UserModel::toString() const{
            this->email + "\n";
 }
 
+/*
+    Funkcija pridobi login podatke iz bson dokumenta
+*/
 void UserModel::getFromBsonDocumentLogin(const bsoncxx::document::view &docView)
 {
     try

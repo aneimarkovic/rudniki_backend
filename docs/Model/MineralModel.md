@@ -25,3 +25,7 @@
   pretvori objekt v BSON dokument
 - `validateMinerals`:
   validira podatke v objektu
+- `mineralGradeToString`
+  Pretvori enum v string
+- `mineralNameToString`
+  Pretvori enum v string

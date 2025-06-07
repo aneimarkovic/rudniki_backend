@@ -151,7 +151,7 @@ bool MineralModel::validateMinerals() const
     return true;
 }
 
-
+//Funkcija, ki parsa grade minerala, da vrne pravilni string
 std::string  MineralModel::mineralGradeToString(int grade) {
     switch (static_cast<MineralGrade>(grade)) {
     case MineralGrade::LOW: return "LOW";
@@ -161,7 +161,7 @@ std::string  MineralModel::mineralGradeToString(int grade) {
     default: return "UNKNOWN_GRADE";
     }
 }
-
+//Funkcija, ki parsa name minerala, da vrne pravilni string
 std::string MineralModel::mineralNameToString(int name) {
     switch (static_cast<MineralName>(name)) {
     case MineralName::NAME_UNDEFINED: return "NAME_UNDEFINED";
