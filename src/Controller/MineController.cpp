@@ -22,6 +22,8 @@ void MineController::saveMine(const request& request, response& response, Router
     BordersModel borders;
     borders.getFromBsonDocument(view);
 
+    borders.points.push_back(borders.points[0]);
+
     PointModel tempPoint = borders.getPoints()[0];
     temp.setLat(tempPoint.getLat());
     temp.setLon(tempPoint.getLon());
