@@ -1118,3 +1118,114 @@ void MineController::getStatistics(const request& req, response& res, Router* r)
         std::cout << "No statistics data: " << bsoncxx::to_json(response_builder.view()) << std::endl;
     }
 }
+
+void MineController::getMineHistory(const request& request, response& response, Router* r)
+{
+    if (r->UrlArguments.empty() || r->UrlArguments[0].empty()) {
+        response.result(boost::beast::http::status::bad_request);
+        response.body() = "{\"message\": \"Mine ID is missing from the URL.\"}";
+        response.set(boost::beast::http::field::content_type, "application/json");
+        return;
+    }
+
+    std::string mineIdString = r->UrlArguments[0];
+    bsoncxx::oid mineOid;
+    try {
+        mineOid = bsoncxx::oid{ mineIdString };
+    }
+    catch (const std::exception& e) {
+        response.result(boost::beast::http::status::bad_request);
+        response.body() = "{\"message\": \"Invalid Mine ID format.\"}";
+        response.set(boost::beast::http::field::content_type, "application/json");
+        return;
+    }
+
+    auto filters = bsoncxx::builder::basic::make_document(
+        bsoncxx::builder::basic::kvp("mineId", mineOid)
+    );
+
+    std::vector<bsoncxx::document::value> result = DatabaseHandler::fetchMultipleDocuments("history", filters.view());
+
+    if (result.empty())
+    {
+        response.body() = "{\"message\": \"No history found for this mine.\"}";
+        response.set(boost::beast::http::field::content_type, "application/json");
+    }
+    else
+    {
+        std::string temp = "{";
+        int counter = 0;
+        for (bsoncxx::document::value& it : result)
+        {
+            temp += "\"" + std::to_string(counter) + "\":" + bsoncxx::to_json(it.view());
+            if (counter < result.size() - 1) {
+                temp += ",";
+            }
+            counter++;
+        }
+        temp += "}";
+        response.body() = temp;
+        response.set(boost::beast::http::field::content_type, "application/json");
+    }
+}
+
+
+void MineController::addMineHistory(const request& request, response& response, Router* r)
+{
+    if (r->UrlArguments.empty() || r->UrlArguments[0].empty()) {
+        response.result(boost::beast::http::status::bad_request);
+        response.body() = "{\"message\": \"Mine ID is missing from the URL.\"}";
+        return;
+    }
+    bsoncxx::oid mineOid;
+    try {
+        mineOid = bsoncxx::oid{ r->UrlArguments[0] };
+    }
+    catch (const std::exception&) {
+        response.result(boost::beast::http::status::bad_request);
+        response.body() = "{\"message\": \"Invalid Mine ID format.\"}";
+        return;
+    }
+
+    try {
+        bsoncxx::document::value document = bsoncxx::from_json(request.body());
+        bsoncxx::document::view view = document.view(); 
+
+        bsoncxx::builder::stream::document historyBuilder{};
+
+        auto now = std::chrono::system_clock::now();
+        auto ms_since_epoch = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count();
+
+        historyBuilder << "_id" << bsoncxx::oid()
+            << "mineId" << mineOid
+            << "day" << ms_since_epoch;
+
+        auto mineralsArrayElement = view["minerals"];
+        if (!mineralsArrayElement || mineralsArrayElement.type() != bsoncxx::type::k_array) {
+            response.result(boost::beast::http::status::bad_request);
+            response.body() = "{\"message\": \"Request body must contain a 'minerals' array.\"}";
+            return;
+        }
+        historyBuilder << "minerals" << mineralsArrayElement.get_array().value;
+
+        bsoncxx::document::value historyDocumentToInsert = historyBuilder.extract();
+
+        bool success = DatabaseHandler::insertDocument("history", historyDocumentToInsert);
+
+        if (success) {
+            response.result(boost::beast::http::status::created);
+            response.body() = "{\"message\": \"History added successfully.\"}";
+        }
+        else {
+            response.result(boost::beast::http::status::internal_server_error);
+            response.body() = "{\"message\": \"Failed to add history to the database.\"}";
+        }
+
+    }
+    catch (const bsoncxx::exception& e) {
+        response.result(boost::beast::http::status::bad_request);
+        response.body() = "{\"message\": \"Invalid JSON format in request body.\"}";
+        std::cerr << "BSON/JSON Error in addMineHistory: " << e.what() << std::endl;
+        return;
+    }
+}

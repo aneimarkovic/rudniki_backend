@@ -66,12 +66,14 @@ int main()
         Router::createPostRoute("/mine/generateMinerals", MineController::generateMineralsValue);
         Router::createPostRoute("/mine/filters", MineController::getFilteredMines);
         Router::createPostRoute("/mine/getMinesByYear", MineController::getMinesByYear);
+        Router::createPostRoute("/mine/addHistory/:id", MineController::addMineHistory);
 
         Router::createGetRoute("/mine/get/:id", MineController::getMine);
         Router::createGetRoute("/", MineController::getScrapperMines);
         Router::createGetRoute("/mine/", MineController::getAllMines);
         Router::createGetRoute("/:id", MineController::searchBar);
         Router::createGetRoute("/mine/statistics", MineController::getStatistics);
+        Router::createGetRoute("/mine/history/:id", MineController::getMineHistory);
 
         Router::createDeleteRoute("/mine/delete/:id", MineController::deleteMine);
         Router::createDeleteRoute("/mine/deleteWorker", MineController::deleteWorker);
