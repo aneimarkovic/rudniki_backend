@@ -59,4 +59,6 @@ public:
 
 	void hashPassword();
 	static bool verifyPassword(const std::string& plainPassword, const std::string& hashedPassword);
+
+    void updateDates();
 };

@@ -173,9 +173,12 @@ bsoncxx::oid UserModel::getUserIdFromJWT(std::string &jwt)
 }
 
 std::string UserModel::toString() const{
-    return this->username + "\n" +
-           this->password + "\n" +
-           this->email + "\n";
+    return + "U: " + this->username + "\n" +
+            + "P: " + this->password + "\n" +
+            + "E: " + this->email + "\n" +
+            + "B: " + std::to_string(this->birthDate.count()) + "\n" +
+            + "C: " + std::to_string(this->created.count()) + "\n" +
+            + "M: " + std::to_string(this->modified.count());
 }
 
 /*
@@ -235,4 +238,9 @@ bool UserModel::verifyPassword(const std::string& plainPassword, const std::stri
     }
 
     return false;
+}
+
+void UserModel::updateDates(){
+    this->created = GET_NOW_IN_MILLISECONDS();
+    this->modified = GET_NOW_IN_MILLISECONDS();
 }

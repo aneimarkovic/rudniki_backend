@@ -12,7 +12,10 @@ void UserController::saveUser(const request& request, response& response, Router
 
 
     UserModel user;
+    std::cout << "PRED: " << user.toString() << std::endl;
     user.getFromBsonDocument(view);
+
+    std::cout << user.toString() << std::endl;
 
     if(!user.validateUserData(validationType::REGISTRATION)){
         bsoncxx::document::value documentTemp = bsoncxx::builder::stream::document{} << "message" << "Napaka ob prijavi: Nepravilni podatki" << bsoncxx::builder::stream::finalize;
@@ -24,9 +27,8 @@ void UserController::saveUser(const request& request, response& response, Router
     }
 
     user.hashPassword();
+    user.updateDates();
     bsoncxx::document::value temp = user.convertToBsonDocument();
-
-    std::cout << user.toString() << std::endl;
 
     std::optional<bsoncxx::oid> id = DatabaseHandler::insertDocumentGetInsertId("users", temp);
 

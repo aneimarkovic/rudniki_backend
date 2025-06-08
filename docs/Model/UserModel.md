@@ -24,6 +24,7 @@ Implemetacija User modela za mongodb bazo.
     Zakodira geslo uporabnika
 - `verifyPassword`
     Preveri ali je geslo pravilno (zakodirano in plain primerja)
-    
+- `updateDates`
+    Nastavi created in modified na NOW()
 ### Uporabljena knjižnica Boost.beast
 [Boost dokumentacija](https://live.boost.org/)
