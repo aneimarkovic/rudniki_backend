@@ -37,6 +37,8 @@ public:
 
     static void getMineHistory(const request& request, response& response, Router* r);
     static void addMineHistory(const request& request, response& response, Router* r);
+
+    static void callBlockchainService(const request& request, response& response, Router* r);
 };
 
 #endif

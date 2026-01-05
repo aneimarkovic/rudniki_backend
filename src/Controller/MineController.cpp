@@ -1229,3 +1229,64 @@ void MineController::addMineHistory(const request& request, response& response, 
         return;
     }
 }
+
+static std::string blockchainClient(std::string& path) {
+    try {
+        net::io_context ioc;
+        tcp::resolver resolver{ ioc };
+        beast::tcp_stream stream{ ioc };
+
+        stream.expires_after(std::chrono::seconds(30));
+
+        boost::asio::ip::basic_resolver_results<tcp> result = resolver.resolve("127.0.0.1", "8081");
+        stream.connect(result);
+
+        http::request<http::string_body> req{http::verb::get, path, 11};
+        req.set(http::field::host, "127.0.0.1");
+        req.set(http::field::user_agent, "HttpServer/1.0");
+
+        http::write(stream, req);
+
+        beast::flat_buffer buffer;
+        http::response<http::string_body> res;
+        http::read(stream, buffer, res);
+
+
+        beast::error_code ec;
+        stream.socket().shutdown(tcp::socket::shutdown_send, ec);
+
+
+
+        return res.body();
+
+
+    } catch (const std::exception& e) {
+        std::cerr << "[ERROR]: " << e.what() << std::endl;
+        return "";
+    }
+}
+
+void MineController::callBlockchainService(const request& request, response& response, Router* r) {
+    std::string target = std::string(request.target());
+    std::string blockchainResponse;
+
+    std::cout << "RECEIVED REQUEST: " << target << std::endl;
+
+    std::string path = "/";
+    std::string prefix = "/blockchain/";
+    std::string data = target.substr(prefix.length());
+
+    if (target.find("/mine") != std::string::npos) {
+        path = data;
+        std::cout << "SENDING TO BLOCKCHAIN: " << path << std::endl;
+        blockchainResponse = blockchainClient(path);
+    } else if (target.find("/stop") != std::string::npos) {
+        path = "/stop";
+        blockchainResponse = blockchainClient(path);
+
+    }
+    std::cout << "RECEIVED RESPONSE: " << blockchainResponse << std::endl;
+    response.result(http::status::ok);
+    response.body() = "[BLOCKCHAIN SERVICE]: " + blockchainResponse + "\n";
+    response.prepare_payload();
+}

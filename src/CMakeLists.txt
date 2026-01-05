@@ -7,6 +7,7 @@
 set(MAIN_APP_ENTRY_POINT_FILE "index.cpp"
 )
 list(FILTER CORE_APP_SOURCES EXCLUDE REGEX ".*/${MAIN_APP_ENTRY_POINT_FILE}$")
+list(FILTER CORE_APP_SOURCES EXCLUDE REGEX ".*/miner\\.cpp$")
 
 if(NOT CORE_APP_SOURCES)
     message(WARNING "Nobena izvorna .cpp datoteka (razen morda ${MAIN_APP_ENTRY_POINT_FILE}) ni bila najdena za knjižnico RudnikCore v mapi 'src'.")

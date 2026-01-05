@@ -1,7 +1,7 @@
-﻿#include "WebSocket/WebSocketController.hpp"
+﻿#include "WebSocket/WebsocketController.hpp"
 #include <bsoncxx/json.hpp>
 #include <boost/beast/websocket.hpp>
-#include "WebSocket/WebSocketSession.hpp" 
+#include "WebSocket/WebsocketSession.hpp" 
 
 #include <future>     
 #include <thread>       

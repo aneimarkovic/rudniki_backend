@@ -1,7 +1,9 @@
 ﻿
 
 add_executable(RudnikAppTests
-    RouterUtilTest.cpp 
+    RouterUtilTest.cpp
+        ../src/Blockchain/Sha256.h
+        ../src/Blockchain/miner.cpp
 )
 
 target_link_libraries(RudnikAppTests PRIVATE

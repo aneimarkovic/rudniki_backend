@@ -96,7 +96,37 @@ else()
     message(FATAL_ERROR "OpenSSL not found. Please install OpenSSL development libraries. See README.md for instructions.")
 endif()
 
+find_package(MPI)
+if(MPI_FOUND)
+    message(STATUS "MPI found. Building blockchain miner")
+    add_executable(blockchain_miner src/Blockchain/miner.cpp)
+
+    target_link_libraries(blockchain_miner PRIVATE MPI::MPI_CXX)
+
+    target_include_directories(blockchain_miner PRIVATE
+            ${CMAKE_CURRENT_SOURCE_DIR}/src
+            ${MPI_CXX_INCLUDE_PATH}
+            "/usr/lib/x86_64-linux-gnu/openmpi/include"
+    )
+    find_package(Threads REQUIRED)
+    target_link_libraries(blockchain_miner PRIVATE Threads::Threads)
+    if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+        target_compile_options(blockchain_miner PRIVATE -O3 -pthread)
+    endif()
+else()
+    message(WARNING "MPI not found! Blockchain Miner will NOT be built. Install libopenmpi-dev.")
+endif()
+
+
 include(FetchContent)
+
+FetchContent_Declare(
+        nlohmann_json
+        GIT_REPOSITORY https://github.com/nlohmann/json
+        GIT_TAG v3.11.3
+)
+FetchContent_MakeAvailable(nlohmann_json)
+
 fetchcontent_declare(jwt-cpp
         GIT_REPOSITORY https://github.com/Thalhammer/jwt-cpp.git
         GIT_TAG 08bcf77a687fb06e34138e9e9fa12a4ecbe12332 # v0.7.0 release
