@@ -13,7 +13,7 @@
 #include <algorithm>
 #include <cmath>
 #include <ctime>
-#include <mpi/mpi.h>
+#include <mpi.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <unistd.h>

@@ -10,7 +10,16 @@ echo "RUNNING CMAKE"
 cmake ..
 
 echo "COMPILING BLOCKCHAIN"
-cmake --build . --target blockchain_miner -- -j$(nproc)
+OS=$(uname -s)
+if [ "$OS" = "Linux" ]; then
+    CORES=$(nproc)
+elif [ "$OS" = "Darwin" ]; then
+    CORES=$(sysctl -n hw.logicalcpu)
+else
+    CORES=1
+fi
+
+cmake --build . --target blockchain_miner -- -j$CORES
 
 if [ $? -ne 0 ]; then
     echo "ERROR COMPILING FAILED"
