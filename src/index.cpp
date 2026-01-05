@@ -96,7 +96,7 @@ int main()
 
         // BLOCKCHAIN
         Router::createGetRoute("/blockchain/mine/:data", MineController::callBlockchainService);
-
+        Router::createGetRoute("/blockchain/stop", MineController::callBlockchainService);
         //DatabaseHandler::create2dsphereIndex("bordersTest", "geometry") ? std::cout << "OK\n" : std::cout << "NE OK\n";
         HttpServer server("127.0.0.1", "8080");
         server.runServer();

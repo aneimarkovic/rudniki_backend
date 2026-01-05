@@ -93,11 +93,16 @@ void webServer(Blockchain* bc) {
             string request(buffer);
             stringstream response;
 
-            size_t minePos = request.find("GET /mine/");
-            if (minePos != string::npos) {
-                size_t endPos = request.find(" ", minePos + 10);
-                string data = request.substr(minePos + 10, endPos - (minePos + 10));
+            std::cout << "REQUIEST: " << request << std::endl;
 
+            size_t minePos = request.find("GET mine/");
+            std::cout << "minePos: " << minePos << std::endl;
+            if (minePos != string::npos) {
+                size_t endPos = request.find(" ", minePos + 9);
+                std::cout << "endPos: " << endPos << std::endl;
+                string data = request.substr(minePos + 9, endPos - (minePos + 9));
+
+                std::cout << "data: " << data << std::endl;
                 {
                     lock_guard<mutex> lock(g_dataMutex);
                     g_targetData = data;
