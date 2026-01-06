@@ -45,15 +45,17 @@ void HttpServer::parseRequest(tcp::socket socket)
 /*Metoda, ki pošlje zahtevo routerju*/
 void HttpServer::getRequest(tcp::socket socket)
 {
+    beast::tcp_stream stream(std::move(socket));
+
     beast::flat_buffer buffer;
     beast::error_code errorCode;
     http::request<http::string_body> req;
 
-    http::read(socket, buffer, req, errorCode);
+    http::read(stream, buffer, req, errorCode);
 
     if (errorCode == http::error::end_of_stream)
     {
-        socket.shutdown(tcp::socket::shutdown_send, errorCode); // Client je zapr connection preden je poslal vse
+        stream.socket().shutdown(tcp::socket::shutdown_send, errorCode); // Client je zapr connection preden je poslal vse
         return;
     }
 
@@ -66,8 +68,6 @@ void HttpServer::getRequest(tcp::socket socket)
     http::response<http::string_body> res;
     res.version(req.version());
     res.keep_alive(req.keep_alive());
-
-    beast::tcp_stream stream(std::move(socket));
 
     // ROUTER CALL - pass the stream
     Router newRoute;

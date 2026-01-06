@@ -11,7 +11,7 @@
 #include <bsoncxx/types.hpp>
 #include <mongocxx/client.hpp>
 #include <mongocxx/instance.hpp>
-
+#include <mongocxx/pool.hpp>
 #include "Model/PointModel.hpp"
 
 #include <iostream>
@@ -22,16 +22,17 @@
 class DatabaseHandler
 {
 private:
-    static mongocxx::instance instance;
+    static std::unique_ptr<mongocxx::instance> instance;
     static mongocxx::uri uri;
     static mongocxx::options::client clientOptions;
-    static mongocxx::client connection;
-    static mongocxx::database db;
+    static std::shared_ptr<mongocxx::pool> pool;
+    const static std::string dbName;
 
     static mongocxx::client createClientWithApi(const mongocxx::uri &uri, mongocxx::options::client &options);
 
 public:
-    // DatabaseHandler(const std::string &uriStr, const std::string &dbName);
+    static void initialize();
+    static mongocxx::pool::entry getClient();
 
     static bool insertDocument(const std::string &collectionName, const bsoncxx::document::value document);
     static std::optional<bsoncxx::oid> insertDocumentGetInsertId(const std::string &collectionName, const bsoncxx::document::value document);

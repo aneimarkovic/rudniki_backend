@@ -1,11 +1,11 @@
 // Created by Anei Markovič 4.5.2025
 #include "DatabaseHandler.hpp"
 
-mongocxx::instance DatabaseHandler::instance{};
+std::unique_ptr<mongocxx::instance> DatabaseHandler::instance = nullptr;
 mongocxx::uri DatabaseHandler::uri("mongodb+srv://darkosever:KeriBurazi69@imerudniki.a8kpflt.mongodb.net/?retryWrites=true&w=majority&appName=ImeRudniki");
 mongocxx::options::client DatabaseHandler::clientOptions{};
-mongocxx::client DatabaseHandler::connection = DatabaseHandler::createClientWithApi(DatabaseHandler::uri, DatabaseHandler::clientOptions);
-mongocxx::database DatabaseHandler::db = DatabaseHandler::connection["ImeRudnikiDatabase"];
+std::shared_ptr<mongocxx::pool> DatabaseHandler::pool = nullptr;
+const std::string DatabaseHandler::dbName = "ImeRudnikiDatabase";
 
 mongocxx::client DatabaseHandler::createClientWithApi(const mongocxx::uri &uri, mongocxx::options::client &options)
 {
@@ -14,21 +14,26 @@ mongocxx::client DatabaseHandler::createClientWithApi(const mongocxx::uri &uri, 
     return mongocxx::client{uri, options};
 }
 
-// DatabaseHandler::DatabaseHandler(const std::string &uriStr, const std::string &dbName)
-//     : uri(uriStr), connection(createClientWithApi(uri, clientOptions)), db(connection[dbName])
-// {
-//     const auto ping_cmd = bsoncxx::builder::basic::make_document(bsoncxx::builder::basic::kvp("ping", 1));
-//     this->db.run_command(ping_cmd.view());
-//     std::cout << "Pinged your deployment." << std::endl;
+void DatabaseHandler::initialize() {
+    if (instance == nullptr) {
+        instance = std::make_unique<mongocxx::instance>();
+    }
 
-//     std::cout << "Povezava z podatkovno bazo vzpostavljena!\n";
-// }
+    pool = std::make_shared<mongocxx::pool>(uri, clientOptions);
+}
+
+mongocxx::pool::entry DatabaseHandler::getClient() {
+    return pool->acquire();
+}
 
 bool DatabaseHandler::insertDocument(const std::string &collectionName, const bsoncxx::document::value document)
 {
     try
     {
-        mongocxx::collection collection = DatabaseHandler::db[collectionName];
+        const auto client = getClient();
+        const auto db = (*client)[dbName];
+        auto collection = db[collectionName];
+
         collection.insert_one(document.view());
         std::cout << "Dokument pravilno vstavljen!\n";
         return true;
@@ -44,7 +49,10 @@ std::optional<bsoncxx::oid> DatabaseHandler::insertDocumentGetInsertId(const std
 {
     try
     {
-        mongocxx::collection collection = DatabaseHandler::db[collectionName];
+        const auto client = getClient();
+        const auto db = (*client)[dbName];
+        auto collection = db[collectionName];
+
         auto result = collection.insert_one(document.view());
         std::cout << "Dokument pravilno vstavljen!\n";
         bsoncxx::types::bson_value::view id = result->inserted_id();
@@ -66,7 +74,10 @@ bool DatabaseHandler::updateOneItem(const std::string &collectionName, bsoncxx::
 {
     try
     {
-        mongocxx::collection collection = DatabaseHandler::db[collectionName];
+        const auto client = getClient();
+        const auto db = (*client)[dbName];
+        auto collection = db[collectionName];
+
         auto result = collection.update_one(filters, update);
         std::cout << "Posodobljenih dokumentov: " << result->modified_count() << std::endl;
         return true;
@@ -85,7 +96,10 @@ std::optional<bsoncxx::document::value> DatabaseHandler::fetchSingleDocument(con
 {
     try
     {
-        mongocxx::collection collection = DatabaseHandler::db[collectionName];
+        const auto client = getClient();
+        const auto db = (*client)[dbName];
+        auto collection = db[collectionName];
+
 
         bsoncxx::stdx::optional<bsoncxx::document::value> driver_find_one_result = collection.find_one(filters);
 
@@ -119,7 +133,10 @@ std::vector<bsoncxx::document::value> DatabaseHandler::fetchMultipleDocuments(co
     std::vector<bsoncxx::document::value> documents;
     try
     {
-        mongocxx::collection collection = DatabaseHandler::db[collectionName];
+        const auto client = getClient();
+        const auto db = (*client)[dbName];
+        auto collection = db[collectionName];
+
 
         mongocxx::cursor cursor = collection.find(filters);
 
@@ -142,7 +159,10 @@ std::vector<bsoncxx::document::value> DatabaseHandler::fetchMultipleDocuments(co
 std::vector<bsoncxx::document::value> DatabaseHandler::fetchMultipleDocumentsAggregate(const std::string &collectionName, const mongocxx::pipeline &pipeline){
     std::vector<bsoncxx::document::value> documents;
     try{
-        mongocxx::collection collection = DatabaseHandler::db[collectionName];
+        const auto client = getClient();
+        const auto db = (*client)[dbName];
+        auto collection = db[collectionName];
+
 
         mongocxx::cursor cursor = collection.aggregate(pipeline);
 
@@ -164,7 +184,10 @@ bool DatabaseHandler::deleteDocument(const std::string &collectionName, bsoncxx:
 {
     try
     {
-        mongocxx::collection collection = DatabaseHandler::db[collectionName];
+        const auto client = getClient();
+        const auto db = (*client)[dbName];
+        auto collection = db[collectionName];
+
         auto result = collection.delete_one(filters);
         std::cout << "Izbrisanih dokumentov: " << result->deleted_count() << std::endl;
         return true;
@@ -181,7 +204,10 @@ std::vector<bsoncxx::document::value> DatabaseHandler::getSpecificColumnFromDocu
     try
     {
         std::vector<bsoncxx::document::value> documents;
-        mongocxx::collection collection = DatabaseHandler::db[collectionName];
+        const auto client = getClient();
+        const auto db = (*client)[dbName];
+        auto collection = db[collectionName];
+
         mongocxx::cursor cursor = collection.find(filters.view(), column);
 
         for (bsoncxx::document::view doc_view : cursor)
@@ -201,7 +227,10 @@ std::vector<bsoncxx::document::value> DatabaseHandler::getSpecificColumnFromDocu
 bool DatabaseHandler::create2dsphereIndex(const std::string& collectionName, const std::string& fieldName)
 {
     try {
-        mongocxx::collection collection = DatabaseHandler::db[collectionName];
+        const auto client = getClient();
+        const auto db = (*client)[dbName];
+        auto collection = db[collectionName];
+
         bsoncxx::builder::basic::document indexDoc{};
         indexDoc.append(bsoncxx::builder::basic::kvp(fieldName, "2dsphere"));
 

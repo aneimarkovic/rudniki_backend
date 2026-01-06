@@ -1,8 +1,6 @@
 // Created by Anei Markovič 26.4.2025
 #include <bsoncxx/builder/stream/document.hpp>
 #include <iostream>
-#include <chrono>
-#include <ctime>
 #include <sodium.h> 
 
 #include "HttpServer.hpp"
@@ -12,23 +10,6 @@
 #include "Controller/MineController.hpp"
 #include "Controller/UserController.hpp"
 #include "WebSocket/WebsocketController.hpp"
-
-void testDatabaseInsert()
-{
-    bsoncxx::builder::stream::document builder;
-    auto now = std::chrono::system_clock::now();
-    auto timeISO = bsoncxx::types::b_date(now);
-
-    builder << "username" << "Anei"
-            << "password" << "Test123"
-            << "email" << "test@gmail.com"
-            << "birthDate" << "7-6-2004"
-            << "created" << timeISO
-            << "modified" << timeISO;
-
-    bsoncxx::document::value document = builder.extract();
-    std::cout << (DatabaseHandler::insertDocument("users", document) ? "uspešno!" : "neuspešno!") << std::endl;
-}
 
 void getAndPrintAllScrapperData()
 {
@@ -57,6 +38,7 @@ int main()
 
 //         testDatabaseInsert();
 //         getAndPrintAllScrapperData();
+        DatabaseHandler::initialize();
 
 //        Mine routes
         Router::createPostRoute("/mine/save", MineController::saveMine);
