@@ -17,6 +17,7 @@ message(STATUS "Datoteke, vključene v RudnikCore: ${CORE_APP_SOURCES}")
 
 add_library(RudnikCore STATIC
         ${CORE_APP_SOURCES}
+        Controller/HelmetDetectionController.cpp
 )
 
 if(MSVC)

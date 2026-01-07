@@ -9,6 +9,7 @@
 #include "RouterUtil/Router.hpp"
 #include "Controller/MineController.hpp"
 #include "Controller/UserController.hpp"
+#include "Controller/HelmetDetectionController.h"
 #include "WebSocket/WebsocketController.hpp"
 
 void getAndPrintAllScrapperData()
@@ -79,6 +80,9 @@ int main()
         // BLOCKCHAIN
         Router::createGetRoute("/blockchain/mine/:data", MineController::callBlockchainService);
         Router::createGetRoute("/blockchain/stop", MineController::callBlockchainService);
+
+        // CV Algorithm
+        Router::createPostRoute("/helmets/save", HelmetDetectionController::getCVAlgorithmData);
         //DatabaseHandler::create2dsphereIndex("bordersTest", "geometry") ? std::cout << "OK\n" : std::cout << "NE OK\n";
         HttpServer server("127.0.0.1", "8080");
         server.runServer();

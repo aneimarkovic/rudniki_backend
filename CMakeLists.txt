@@ -99,7 +99,8 @@ endif()
 find_package(MPI)
 if(MPI_FOUND)
     message(STATUS "MPI found. Building blockchain miner")
-    add_executable(blockchain_miner src/Blockchain/miner.cpp)
+    add_executable(blockchain_miner src/Blockchain/miner.cpp
+            includes/Controller/HelmetDetectionController.h)
 
     target_link_libraries(blockchain_miner PRIVATE MPI::MPI_CXX)
 
