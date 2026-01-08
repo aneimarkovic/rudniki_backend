@@ -11,6 +11,7 @@
 #include "Controller/UserController.hpp"
 #include "Controller/HelmetDetectionController.h"
 #include "WebSocket/WebsocketController.hpp"
+#include "Controller/NotificationController.h"
 
 void getAndPrintAllScrapperData()
 {
@@ -32,6 +33,8 @@ int main()
 {
     try
     {
+        HttpServer::createOAuthJWT();
+        // std::cout << "ACCESS TOKEN: " << HttpServer::accessToken << std::endl;
 
         if (sodium_init() < 0) {
             throw std::runtime_error("Failed to initialize libsodium!");
@@ -83,7 +86,13 @@ int main()
 
         // CV Algorithm
         Router::createPostRoute("/helmets/save", HelmetDetectionController::getCVAlgorithmData);
+
+        // NOTIFICATIONS
+        Router::createPostRoute("/notification/register", NotificationController::receiveDeviceInfoFromApp);
+        Router::createPostRoute("/notification/send", NotificationController::receiveMessageInfoFromApp);
+
         //DatabaseHandler::create2dsphereIndex("bordersTest", "geometry") ? std::cout << "OK\n" : std::cout << "NE OK\n";
+
         HttpServer server("127.0.0.1", "8080");
         server.runServer();
     }

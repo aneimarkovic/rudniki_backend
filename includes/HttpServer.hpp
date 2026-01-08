@@ -13,6 +13,7 @@ po obdelavi zahteve dobi v funkcijo sen objekt odgovor, ki ga pošlje na client 
 #include <boost/beast/http.hpp>
 #include <bsoncxx/types.hpp>
 #include <jwt-cpp/jwt.h>
+#include <nlohmann/json.hpp>
 
 #include <string>
 #include <thread>
@@ -34,7 +35,9 @@ private:
     net::io_context ioContext;
     tcp::acceptor acceptor;
     tcp::socket socket;
-
+public:
+    static std::string accessToken;
+    static std::string projectId;
 public:
     HttpServer(const std::string &ipAddress, const std::string &port);
     void runServer();
@@ -42,6 +45,7 @@ public:
     void getRequest(tcp::socket socket);
     void send(tcp::socket socket, http::response<http::string_body> response);
     static std::string createJWT(bsoncxx::oid userId);
+    static void createOAuthJWT();
     static bool verifyJWT(std::string& token);
 };
 #endif

@@ -18,6 +18,7 @@ message(STATUS "Datoteke, vključene v RudnikCore: ${CORE_APP_SOURCES}")
 add_library(RudnikCore STATIC
         ${CORE_APP_SOURCES}
         Controller/HelmetDetectionController.cpp
+        Controller/NotificationController.cpp
 )
 
 if(MSVC)
@@ -34,6 +35,7 @@ target_link_libraries(RudnikCore PUBLIC
         ${MONGO_BSONCXX_LIBRARY}
         ${MONGO_MONGOCXX_LIBRARY}
         jwt-cpp::jwt-cpp
+        nlohmann_json::nlohmann_json
         sodium
 )
 

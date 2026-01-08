@@ -100,7 +100,8 @@ find_package(MPI)
 if(MPI_FOUND)
     message(STATUS "MPI found. Building blockchain miner")
     add_executable(blockchain_miner src/Blockchain/miner.cpp
-            includes/Controller/HelmetDetectionController.h)
+            includes/Controller/HelmetDetectionController.h
+            includes/Controller/NotificationController.h)
 
     target_link_libraries(blockchain_miner PRIVATE MPI::MPI_CXX)
 
@@ -145,3 +146,9 @@ FetchContent_MakeAvailable(unofficial_sodium)
 
 enable_testing()
 add_subdirectory(test)
+
+configure_file(
+        ${CMAKE_SOURCE_DIR}/rudnikipora_firebase_key.json
+        ${CMAKE_BINARY_DIR}/rudnikipora_firebase_key.json
+        COPYONLY
+)

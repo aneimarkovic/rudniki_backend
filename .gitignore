@@ -89,3 +89,6 @@ output # The 890KB file named "output"
 # Apple specific
 ################
 .DS_Store
+
+# FIREBASE KEY
+rudnikipora_firebase_key.json

@@ -3,6 +3,19 @@
 #include "Controller/UserController.hpp"
 #include "DatabaseHandler.hpp"
 #include "RouterUtil/Router.hpp"
+#include <boost/asio/ssl/stream.hpp>
+#include <boost/beast/core.hpp>
+#include <boost/beast/http.hpp>
+#include <boost/beast/ssl.hpp>
+#include <boost/beast/version.hpp>
+#include <boost/asio/connect.hpp>
+#include <boost/asio/ip/tcp.hpp>
+#include <boost/asio/ssl/error.hpp>
+#include <boost/asio/ssl/stream.hpp>
+#include <fstream>
+
+std::string HttpServer::accessToken = "";
+std::string HttpServer::projectId = "";
 
 HttpServer::HttpServer(const std::string &ipAddress, const std::string &port) : acceptor(ioContext, tcp::endpoint(net::ip::make_address(ipAddress), std::stoi(port))),
                                                                                 socket(ioContext)
@@ -118,6 +131,111 @@ std::string HttpServer::createJWT(bsoncxx::oid userId)
             .set_payload_claim("user", jwt::claim(userId.to_string()))
             .sign(jwt::algorithm::hs256{privateKey});
     return token;
+}
+
+std::string sendJwtToOAuth(std::string jwt);
+
+//Funkcija, ki bo naredila JWT iz
+void HttpServer::createOAuthJWT() {
+    auto currentTime = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch());
+    auto expirationTime = currentTime + std::chrono::seconds{3600};
+
+    std::ifstream f("../rudnikipora_firebase_key.json");
+    if (!f.is_open()) {
+        std::cerr << "Failed to open file" << std::endl;
+    }
+
+    nlohmann::json data = nlohmann::json::parse(f);
+    // std::cout << data << std::endl;
+    // std::cout << data["type"] << std::endl;
+
+    std::string privateKey = data["private_key"].get<std::string>();
+
+    HttpServer::projectId = data["project_id"].get<std::string>();
+
+    size_t pos = 0;
+    while ((pos = privateKey.find("\\n", pos)) != std::string::npos) {
+        privateKey.replace(pos, 2, "\n");
+        pos += 1;
+    }
+
+    std::string token = jwt::create()
+    .set_type("JWT")
+    .set_issuer(data["client_email"])
+    .set_subject(data["client_email"])
+    .set_audience("https://oauth2.googleapis.com/token")
+    .set_payload_claim("scope", jwt::claim(std::string("https://www.googleapis.com/auth/firebase.messaging")))
+    .set_payload_claim("iat", jwt::claim(picojson::value(currentTime.count())))
+    .set_payload_claim("exp", jwt::claim(picojson::value(expirationTime.count())))
+    .sign(jwt::algorithm::rs256("", privateKey, ""));
+
+    try {
+        HttpServer::accessToken = sendJwtToOAuth(token);
+    } catch (std::exception &e) {
+        std::cerr << "ERROR OAUTH: " << e.what() << std::endl;
+    }
+}
+
+std::string sendJwtToOAuth(std::string jwt) {
+    std::string accessToken = "";
+    try {
+        net::io_context ioc;
+        net::ssl::context ctx {net::ssl::context::tlsv12_client};
+        tcp::resolver resolver{ ioc };
+
+        boost::beast::ssl_stream<beast::tcp_stream> stream{ ioc, ctx };
+        beast::get_lowest_layer(stream).expires_after(std::chrono::seconds(30));
+
+        //Server name indication
+        if (!SSL_set_tlsext_host_name(stream.native_handle(), "oauth2.googleapis.com")) {
+            throw std::runtime_error("ERROR with server name indication");
+        }
+
+        boost::asio::ip::basic_resolver_results<tcp> const results = resolver.resolve("oauth2.googleapis.com", "443");
+
+        boost::beast::get_lowest_layer(stream).connect(results);
+        stream.handshake(net::ssl::stream_base::client);
+
+        std::string bodyData = "grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer&assertion=" + jwt;
+
+        http::request<http::string_body> req{http::verb::post, "/token", 11};
+        req.set(http::field::host, "oauth2.googleapis.com");
+        req.set(http::field::user_agent, "Rudniki/1.0");
+        req.set(http::field::content_type, "application/x-www-form-urlencoded");
+
+        req.body() = bodyData;
+        req.prepare_payload();
+        try {
+            http::write(stream, req);
+        } catch (std::exception &e) {
+            std::cerr << "ERROR sending JWT to OAuth: " << e.what() << std::endl;
+            throw std::runtime_error("ERROR sending jwt to OAuth");
+        }
+
+        beast::flat_buffer buffer;
+        http::response<http::string_body> res;
+
+        try {
+            http::read(stream, buffer, res);
+        } catch (std::exception &e) {
+            std::cerr << "ERROR reading response from OAuth: " << e.what() << std::endl;
+            throw std::runtime_error("ERROR reading response from OAuth");
+        }
+
+        // std::cout << "OAuth response:  "<< res.body() << std::endl;
+        nlohmann::json data = nlohmann::json::parse(res.body());
+        // std::cout << "OAUTH RESPONSE: " << data << std::endl;
+
+        accessToken = data["access_token"].get<std::string>();
+
+        beast::error_code ec;
+        stream.shutdown(ec);
+    } catch (const std::exception& e) {
+        std::cerr << "[ERROR]: " << e.what() << std::endl;
+        throw std::runtime_error("ERROR while doing OAuth");
+    }
+
+    return accessToken;
 }
 
 //Funkcija, ki preveri in verifya jwt
