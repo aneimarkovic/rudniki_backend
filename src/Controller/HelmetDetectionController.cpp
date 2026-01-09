@@ -58,7 +58,7 @@ void HelmetDetectionController::getCVAlgorithmData(const request& request, respo
         alertMessage.messageType = 1;               
         alertMessage.message = "Some workers are not wearing helmets!";
 
-        NotificationController::sendMessageToUser(alertMessage);
+        NotificationController::sendMessageToUser(alertMessage); 
     }
 
     response.result(http::status::ok);
