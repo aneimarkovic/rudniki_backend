@@ -41,6 +41,8 @@ void HelmetDetectionController::getCVAlgorithmData(const request& request, respo
             << bsoncxx::builder::stream::finalize;
 
         response.body() = bsoncxx::to_json(respDoc.view());
+
+        std::cout << "Saved to DB";
     }
     else {
         response.body() = "Error saving detection data!";
