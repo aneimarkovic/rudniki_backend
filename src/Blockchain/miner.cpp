@@ -14,10 +14,22 @@
 #include <cmath>
 #include <ctime>
 #include <mpi.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <unistd.h>
-#include <arpa/inet.h>
+
+// Mapped Windows VS POSIX
+#ifdef _WIN32
+    #include <winsock2.h>
+    #include <ws2tcpip.h>
+    #pragma comment(lib, "ws2_32.lib")
+    #define CLOSE_SOCKET closesocket
+    typedef int ssize_t;
+    typedef int socklen_t;
+#else
+    #include <sys/socket.h>
+    #include <netinet/in.h>
+    #include <unistd.h>
+    #include <arpa/inet.h>
+    #define CLOSE_SOCKET close
+#endif
 
 #include "Blockchain.h"
 #include "Structs/Consts.h"
@@ -59,14 +71,19 @@ void minerThread(int id, int step, Block b, int difficulty) {
 }
 
 void webServer(Blockchain* bc) {
+#ifdef _WIN32
+    WSADATA wsaData;
+    if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) return;
+#endif
+
     int server_fd, new_socket;
     struct sockaddr_in address;
     int opt = 1;
-    int addrlen = sizeof(address);
+    socklen_t addrlen = sizeof(address); // Changed int to socklen_t
 
     // Strežnik na portu 8081
     if ((server_fd = ::socket(AF_INET, SOCK_STREAM, 0)) == 0) return;
-    if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt))) return;
+    if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, (const char*)&opt, sizeof(opt))) return;
 
     address.sin_family = AF_INET;
     address.sin_addr.s_addr = inet_addr("127.0.0.1");
@@ -84,10 +101,10 @@ void webServer(Blockchain* bc) {
         if (select(server_fd + 1, &readfds, NULL, NULL, &tv) > 0) {
             if ((new_socket = ::accept(server_fd, (struct sockaddr *)&address, (socklen_t*)&addrlen)) < 0) continue;
 
-            char buffer[1024] = {0};
-            ssize_t bytesRead = read(new_socket, buffer, 1024);
+            char buffer[1024] = { 0 };
+            ssize_t bytesRead = recv(new_socket, buffer, 1024, 0);
             if (bytesRead <= 0) {
-                close(new_socket);
+                CLOSE_SOCKET(new_socket);
                 continue;
             }
             string request(buffer);
@@ -133,11 +150,15 @@ void webServer(Blockchain* bc) {
 
             string resp = response.str();
             send(new_socket, resp.c_str(), resp.length(), 0);
-            ::close(new_socket);
+            CLOSE_SOCKET(new_socket);
         }
     }
-    ::close(server_fd);
+    CLOSE_SOCKET(server_fd);
+#ifdef _WIN32
+    WSACleanup();
+#endif
 }
+
 
 void inputListener() {
     string line;

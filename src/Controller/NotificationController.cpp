@@ -74,12 +74,12 @@ void NotificationController::receiveDeviceInfoFromApp(const request &request, re
      * Message type = 3 => End of shift notification (TODO: nvn ce sploh nucamo tu samo app)
      */
 
-    if (message.messageType != 0) {
-        return;
+    if (message.messageType == 0 || message.messageType == 1) {
+        appList.push_back(message);
     }
 
     //TEMPORARY remove in the future
-    appList.push_back(message);
+    //appList.push_back(message);
     //TODO: Save message to blockchain;
 }
 void NotificationController::receiveMessageInfoFromApp(const request& request, response& response, Router* r) {
@@ -97,7 +97,7 @@ void NotificationController::sendMessageToUser(AppMessage receivedMessage) {
         bool workerFlag = message.workerType == receivedMessage.workerType;
         // bool messageFlag = message.messageType == messageType;
 
-        if (mineFlag && workerFlag) {
+        if ((mineFlag && workerFlag) || (receivedMessage.messageType == 1)) {
             messagesToSend.push_back(message);
         }
     }
