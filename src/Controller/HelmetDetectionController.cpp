@@ -23,7 +23,7 @@ void HelmetDetectionController::getCVAlgorithmData(const request& request, respo
     int totalPersons = document.view()["persons"].get_int32().value;
     int helmetsOn = document.view()["helmets"].get_int32().value;
     bool status = document.view()["status"].get_bool().value;
-    bool helmetsMissing = totalPersons > helmetsMissing;
+    bool helmetsMissing = totalPersons > helmetsOn;
 
     bsoncxx::oid mineID; // PLACEHOLDER KER OD NIKJER NE DOBIM
 
