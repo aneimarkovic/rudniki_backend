@@ -97,7 +97,7 @@ void NotificationController::sendMessageToUser(AppMessage receivedMessage) {
         bool workerFlag = message.workerType == receivedMessage.workerType;
         // bool messageFlag = message.messageType == messageType;
 
-        if ((mineFlag && workerFlag) || (receivedMessage.messageType == 1 && mineFlag)) {
+        if (mineFlag && workerFlag || receivedMessage.messageType == 1) {
             messagesToSend.push_back(message);
         }
     }
