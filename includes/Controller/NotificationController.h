@@ -26,6 +26,7 @@ struct AppMessage {
     std::string workerType;
     uint16_t messageType;
     std::string message = "";
+    std::string location = "";
 };
 
 class NotificationController {

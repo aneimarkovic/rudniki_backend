@@ -23,7 +23,7 @@ public:
         genesis.timestamp = time(nullptr);
         genesis.data = "Genesis";
         genesis.previousBlockHash = string(64, '0');
-        genesis.difficulty = 5;
+        genesis.difficulty = 2;
         genesis.nonce = 0;
         genesis.currentBlockHash = Block::calculateHash(genesis);
         chain.push_back(genesis);
@@ -41,9 +41,9 @@ public:
 
     int getNextDifficulty() {
         lock_guard<mutex> lock(chainMutex);
-        if (chain.empty()) return 5;
+        if (chain.empty()) return 2;
         Block last = chain.back();
-        if (chain.size() < 10) return 5;
+        if (chain.size() < 10) return 2;
         if (chain.size() % 10 != 0) return last.difficulty;
 
         Block adjustmentBlock = chain[chain.size() - 10];

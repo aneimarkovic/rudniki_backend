@@ -39,6 +39,9 @@ public:
     static void addMineHistory(const request& request, response& response, Router* r);
 
     static void callBlockchainService(const request& request, response& response, Router* r);
+    static std::string blockchainClient(std::string path);
+
+    static void saveToBlockchain(std::string rawData);
 };
 
 #endif

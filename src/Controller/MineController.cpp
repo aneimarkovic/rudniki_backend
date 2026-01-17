@@ -1230,7 +1230,7 @@ void MineController::addMineHistory(const request& request, response& response, 
     }
 }
 
-static std::string blockchainClient(std::string& path) {
+std::string MineController::blockchainClient(std::string path) {
     try {
         net::io_context ioc;
         tcp::resolver resolver{ ioc };
@@ -1289,4 +1289,15 @@ void MineController::callBlockchainService(const request& request, response& res
     response.result(http::status::ok);
     response.body() = "[BLOCKCHAIN SERVICE]: " + blockchainResponse + "\n";
     response.prepare_payload();
+}
+
+// Helper funkcija, ki vzame data, ga pripravi in pošlje na blockchain
+void MineController::saveToBlockchain(std::string rawData) {
+    std::replace(rawData.begin(), rawData.end(), ' ', '_');
+
+    std::cout << "[BLOCKCHAIN_HELPER] Queuing: " << rawData << std::endl;
+
+    std::thread([rawData]() {
+        MineController::blockchainClient("mine/" + rawData);
+        }).detach();
 }

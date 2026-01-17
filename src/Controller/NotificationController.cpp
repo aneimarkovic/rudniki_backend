@@ -2,20 +2,36 @@
 // Created by Anei Markovic on 1/8/26.
 //
 #include "Controller/NotificationController.h"
+#include "Controller/MineController.hpp"
 
 #include "HttpServer.hpp"
+
+#include <algorithm>
 
 std::vector<AppMessage> NotificationController::appList = std::vector<AppMessage>();
 
 AppMessage NotificationController::convertJsonToAppMessage(nlohmann::json json) {
-    // std::cout << json.dump() << std::endl;
     AppMessage message;
-    message.deviceId = json["token"];
-    message.mineName = json["mine_name"];
-    message.workerType = json["worker_role"];
-    message.messageType = std::stoi(json["message_type"].get<std::string>());
+
+    if (json.contains("token")) message.deviceId = json["token"];
+    if (json.contains("mine_name")) message.mineName = json["mine_name"];
+    if (json.contains("worker_role")) message.workerType = json["worker_role"];
+
+    if (json.contains("message_type")) {
+        if (json["message_type"].is_number()) {
+            message.messageType = json["message_type"];
+        }
+        else {
+            message.messageType = std::stoi(json["message_type"].get<std::string>());
+        }
+    }
+
     if (json.contains("message")) {
         message.message = json["message"];
+    }
+
+    if (json.contains("location")) {
+        message.location = json["location"];
     }
 
     return message;
@@ -74,30 +90,43 @@ void NotificationController::receiveDeviceInfoFromApp(const request &request, re
      * Message type = 3 => End of shift notification (TODO: nvn ce sploh nucamo tu samo app)
      */
 
+    // Save localy
     if (message.messageType == 0 || message.messageType == 1) {
         appList.push_back(message);
     }
 
-    //TEMPORARY remove in the future
-    //appList.push_back(message);
-    //TODO: Save message to blockchain;
+    // SAVE TO BLOCKCHAIN
+    MineController::saveToBlockchain("REGISTRATION_" + message.mineName + "_" + message.workerType);
 }
+
 void NotificationController::receiveMessageInfoFromApp(const request& request, response& response, Router* r) {
-    // std::cout << "Received a message: " << request.body() << std::endl;
     nlohmann::json json = nlohmann::json::parse(request.body());
-    // std::cout << "Received a message: " << json.dump() << std::endl;
     AppMessage receivedMessage = convertJsonToAppMessage(json);
 
+    // pripravi data
+    std::string dataToMine = receivedMessage.mineName + "_" +
+        receivedMessage.workerType + "_" +
+        receivedMessage.location + "_" +
+        receivedMessage.message;
+
+    MineController::saveToBlockchain(dataToMine);
+
     NotificationController::sendMessageToUser(receivedMessage);
+
+    // Return OK to the app immediately
+    response.result(http::status::ok);
+    response.body() = "Message received and saving to blockchain.";
+    response.prepare_payload();
 }
+
 void NotificationController::sendMessageToUser(AppMessage receivedMessage) {
     std::vector<AppMessage> messagesToSend;
-    for (AppMessage message: appList) {
+    for (AppMessage message : appList) {
         bool mineFlag = message.mineName == receivedMessage.mineName;
         bool workerFlag = message.workerType == receivedMessage.workerType;
         // bool messageFlag = message.messageType == messageType;
 
-        if ((mineFlag && workerFlag) || (receivedMessage.messageType == 1)) {
+        if (mineFlag && (receivedMessage.messageType == 2 || workerFlag || receivedMessage.messageType == 1)){
             messagesToSend.push_back(message);
         }
     }
