@@ -6,6 +6,7 @@
 #include "Controller/HelmetDetectionController.h"
 #include "DatabaseHandler.hpp"
 #include "Controller/NotificationController.h"
+#include "Controller/MineController.hpp"
 
 void HelmetDetectionController::getCVAlgorithmData(const request& request, response& response, Router* r) {
     const bsoncxx::document::value document = bsoncxx::from_json(request.body());
@@ -57,6 +58,9 @@ void HelmetDetectionController::getCVAlgorithmData(const request& request, respo
         alertMessage.workerType = "";                
         alertMessage.messageType = 1;               
         alertMessage.message = "Some workers are not wearing helmets!";
+
+        std::string violationData = "ALERT_HELMET_MISSING_PLACEHOLDER_" + id->to_string();
+        MineController::saveToBlockchain(violationData);
 
         NotificationController::sendMessageToUser(alertMessage); 
     }

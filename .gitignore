@@ -34,6 +34,11 @@ output # The 890KB file named "output"
 [Ww][Ii][Nn]32/
 *.VC.db
 *.VC.VC.opendb
+.cache/
+enc_temp_folder/
+
+.cache
+enc_temp_folder
 
 # VS Code
 .vscode/
