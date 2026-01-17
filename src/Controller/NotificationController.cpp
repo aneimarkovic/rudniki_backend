@@ -1,6 +1,7 @@
 //
 // Created by Anei Markovic on 1/8/26.
 //
+
 #include "Controller/NotificationController.h"
 #include "Controller/MineController.hpp"
 
@@ -12,20 +13,13 @@ std::vector<AppMessage> NotificationController::appList = std::vector<AppMessage
 
 AppMessage NotificationController::convertJsonToAppMessage(nlohmann::json json) {
     AppMessage message;
-
-    if (json.contains("token")) message.deviceId = json["token"];
-    if (json.contains("mine_name")) message.mineName = json["mine_name"];
-    if (json.contains("worker_role")) message.workerType = json["worker_role"];
-
-    if (json.contains("message_type")) {
-        if (json["message_type"].is_number()) {
-            message.messageType = json["message_type"];
-        }
-        else {
-            message.messageType = std::stoi(json["message_type"].get<std::string>());
-        }
+    message.deviceId = json["token"];
+    message.mineName = json["mine_name"];
+    message.workerType = json["worker_role"];
+    message.messageType = std::stoi(json["message_type"].get<std::string>());
+    if (json.contains("location")) {
+        message.location = json["location"];
     }
-
     if (json.contains("message")) {
         message.message = json["message"];
     }
@@ -87,11 +81,9 @@ void NotificationController::receiveDeviceInfoFromApp(const request &request, re
      * Message type = 0 => Add me to notification list
      * Message type = 1 => Not wearing a helemt
      * Message type = 2 => Sending message to other worker
-     * Message type = 3 => End of shift notification (TODO: nvn ce sploh nucamo tu samo app)
      */
 
-    // Save localy
-    if (message.messageType == 0 || message.messageType == 1) {
+    if (message.messageType == 0) {
         appList.push_back(message);
     }
 
