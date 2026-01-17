@@ -42,6 +42,9 @@ public:
     static std::string blockchainClient(std::string path);
 
     static void saveToBlockchain(std::string rawData);
+
+    static void createPasswords(const request& request, response& response, Router* r);
+    static void getPasswords(const request& request, response& response, Router* r);
 };
 
 #endif

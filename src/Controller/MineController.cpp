@@ -1301,3 +1301,203 @@ void MineController::saveToBlockchain(std::string rawData) {
         MineController::blockchainClient("mine/" + rawData);
         }).detach();
 }
+
+
+std::string generateUniqueString(size_t length)
+{
+    const std::string charset = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!#";
+    std::random_device rd;
+    std::mt19937 generator(rd());
+    std::uniform_int_distribution<> distribution(0, charset.size() - 1);
+
+    std::string result;
+    result.resize(length);
+    for (size_t i = 0; i < length; ++i) {
+        result[i] = charset[distribution(generator)];
+    }
+    return result;
+}
+
+// Ustvari geslo za vsak workerType, ga sharni in pošlje nazaj clientu
+void MineController::createPasswords(const request& request, response& response, Router* r)
+{
+    /*
+        1. Take JWT to get current userID
+        2. Get the coresponding mineID
+        3. Generate workerType number of passwords.
+        4. Save in format
+
+            {
+                mineID: oid{ffdDD...SFD}
+                passwords: [
+                    { workerType: 1, password: sfdghsiugjsg},
+                    ...
+                    { workerType: 15, password: sfdghsiugjsg}
+                ]
+            }
+        5. Send back to client
+    */
+
+    // 1. Take JWT to get current userID
+
+    std::string token = "";
+    auto it = request.find(boost::beast::http::field::cookie);
+    if (it != request.end())
+    {
+        auto cookie_header = std::string(it->value());
+        size_t pos = cookie_header.find("jwt=");
+        if (pos != std::string::npos) {
+            size_t start = pos + 4;
+            size_t end = cookie_header.find(";", start);
+            token = cookie_header.substr(start, end - start);
+        }
+    }
+
+    if (token == "") {
+        bsoncxx::document::value documentTemp = bsoncxx::builder::stream::document{} << "message" << "Potrebna prijava!" << bsoncxx::builder::stream::finalize;
+        bsoncxx::document::view viewTemp = documentTemp.view();
+        std::string jsonStr = bsoncxx::to_json(viewTemp);
+
+        response.body() = jsonStr;
+        return;
+    }
+
+    bsoncxx::oid userId = UserModel::getUserIdFromJWT(token);
+
+
+    // 2. Get the coresponding mineID
+    bsoncxx::oid mineID;
+
+    auto filter = bsoncxx::builder::stream::document{}
+        << "ownerId" << userId
+        << bsoncxx::builder::stream::finalize;
+
+    std::optional<bsoncxx::document::value> mineDoc = DatabaseHandler::fetchSingleDocument("mines", filter.view());
+
+    if (mineDoc) {
+        mineID = mineDoc->view()["_id"].get_oid().value;
+    }
+    else {
+        bsoncxx::document::value errorDoc = bsoncxx::builder::stream::document{}
+            << "message" << "Uporabnik nima pripadajočega rudnika!"
+            << bsoncxx::builder::stream::finalize;
+
+        response.body() = bsoncxx::to_json(errorDoc.view());
+        return;
+    }
+
+    // 3. Generate workerType number of passwords.
+
+    bsoncxx::oid mineID("64b1f7e8901234567890abcd");
+
+    bsoncxx::builder::stream::array passwordsArr;
+    
+    // Loop through worker types 1 to 15
+    for (int i = 1; i <= 15; i++)
+    {
+        std::string uniquePwd = generateUniqueString(18);
+
+        passwordsArr << bsoncxx::builder::stream::open_document
+            << "workerType" << i
+            << "password" << uniquePwd
+            << bsoncxx::builder::stream::close_document;
+    }
+
+    // 4. Save format to DB
+    bsoncxx::builder::stream::document passwordDocument;
+
+    passwordDocument << "mineID" << mineID
+        << "passwords" << passwordsArr.view();
+
+    bsoncxx::document::value docToInsert = passwordDocument.extract();
+
+    bool passwordsInserted = DatabaseHandler::insertDocument("appPasswords", docToInsert);
+
+    if (passwordsInserted) {
+        bsoncxx::builder::stream::document responseDoc;
+        responseDoc << "success" << true
+            << "message" << "Gesla uspešno ustvarjena!"
+            << "data" << docToInsert.view(); 
+
+        response.body() = bsoncxx::to_json(responseDoc.view());
+        response.result(boost::beast::http::status::ok);
+    }
+    else {
+        bsoncxx::builder::stream::document responseDoc;
+        responseDoc << "success" << false
+            << "message" << "Napaka pri shranjevanju gesel!";
+
+        response.body() = bsoncxx::to_json(responseDoc.view());
+        response.result(boost::beast::http::status::internal_server_error);
+    }
+
+    response.set(boost::beast::http::field::content_type, "application/json");
+
+}
+
+void MineController::getPasswords(const request& request, response& response, Router* r)
+{
+
+    std::string token = "";
+    auto it = request.find(boost::beast::http::field::cookie);
+    if (it != request.end())
+    {
+        auto cookie_header = std::string(it->value());
+        size_t pos = cookie_header.find("jwt=");
+        if (pos != std::string::npos) {
+            size_t start = pos + 4;
+            size_t end = cookie_header.find(";", start);
+            token = cookie_header.substr(start, end - start);
+        }
+    }
+
+    if (token == "") {
+        bsoncxx::document::value documentTemp = bsoncxx::builder::stream::document{} << "message" << "Potrebna prijava!" << bsoncxx::builder::stream::finalize;
+        bsoncxx::document::view viewTemp = documentTemp.view();
+        std::string jsonStr = bsoncxx::to_json(viewTemp);
+
+        response.body() = jsonStr;
+        return;
+    }
+
+    bsoncxx::oid userId = UserModel::getUserIdFromJWT(token);
+
+
+
+    bsoncxx::oid mineID;
+
+    auto filter = bsoncxx::builder::stream::document{}
+        << "ownerId" << userId
+        << bsoncxx::builder::stream::finalize;
+
+    std::optional<bsoncxx::document::value> mineDoc = DatabaseHandler::fetchSingleDocument("mines", filter.view());
+
+    if (mineDoc) {
+        mineID = mineDoc->view()["_id"].get_oid().value;
+    }
+    else {
+        bsoncxx::document::value errorDoc = bsoncxx::builder::stream::document{}
+            << "message" << "Uporabnik nima pripadajočega rudnika!"
+            << bsoncxx::builder::stream::finalize;
+
+        response.body() = bsoncxx::to_json(errorDoc.view());
+        return;
+    }
+
+    bsoncxx::oid mineID("64b1f7e8901234567890abcd");
+
+    auto filters = bsoncxx::builder::basic::make_document(bsoncxx::builder::basic::kvp("mineID", mineID));
+
+    std::optional<bsoncxx::document::value> passwordDoc = DatabaseHandler::fetchSingleDocument("appPasswords", filters);
+
+    if (passwordDoc)
+    {
+        bsoncxx::document::view viewTemp = passwordDoc->view();
+        std::string jsonStr = bsoncxx::to_json(viewTemp);
+        response.body() = jsonStr;
+    }
+    else
+    {
+        std::cout << "Neobstaja\n";
+    }
+}
