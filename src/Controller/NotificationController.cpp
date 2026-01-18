@@ -4,7 +4,7 @@
 
 #include "Controller/NotificationController.h"
 #include "Controller/MineController.hpp"
-
+#include "DatabaseHandler.hpp"
 #include "HttpServer.hpp"
 
 #include <algorithm>
@@ -33,7 +33,7 @@ AppMessage NotificationController::convertJsonToAppMessage(nlohmann::json json) 
 std::string NotificationController::getNotificationMessageTitle(uint16_t messageType) {
     switch (messageType) {
         case 1:
-            return "ALERT NOT WEARING A HELMET";
+            return "ALERT NO HELMET";
         case 2:
             return "RECEIVED A MESSAGE";
         case 3:
@@ -45,7 +45,7 @@ std::string NotificationController::getNotificationMessageTitle(uint16_t message
 std::string NotificationController::getNotificationMessageBody(AppMessage message) {
     switch (message.messageType) {
         case 1:
-            return "Worker is not wearing a helmeth, please put your helmet on";
+            return "Workers without helmet";
         case 2:
             return message.message;
         case 3:
@@ -69,7 +69,7 @@ void NotificationController::receiveDeviceInfoFromApp(const request &request, re
     // std::cout << "Message type: " << json["message_type"] << std::endl;
 
 
-    AppMessage const message = convertJsonToAppMessage(json);
+    AppMessage message = convertJsonToAppMessage(json);
 
     std::cout << "DEVICE FROM: [" << message.mineName << "] REGISTRED" << std::endl;
 
@@ -82,6 +82,33 @@ void NotificationController::receiveDeviceInfoFromApp(const request &request, re
      * Message type = 1 => Not wearing a helemt
      * Message type = 2 => Sending message to other worker
      */
+
+
+    std::string providedPassword = message.mineName;
+
+    auto passwordFilter = bsoncxx::builder::basic::make_document(
+        bsoncxx::builder::basic::kvp("passwords.password", providedPassword)
+    );
+
+    auto result = DatabaseHandler::fetchSingleDocument("appPasswords", passwordFilter);
+
+    if (!result) {
+        response.body() = "Invalid Password / Mine not found";
+        response.result(http::status::unauthorized);
+        return;
+    }
+
+    auto passwordsArray = result->view()["passwords"].get_array().value;
+
+    for (const auto& element : passwordsArray) {
+        std::string currentPass = std::string(element["password"].get_string().value);
+        int currentWorkerType = element["workerType"].get_int32().value;
+
+        if (message.mineName == currentPass)
+        {
+            message.workerType = std::to_string(currentWorkerType);
+        }
+    }
 
     if (message.messageType == 0) {
         bool found = false;
@@ -109,32 +136,87 @@ void NotificationController::receiveMessageInfoFromApp(const request& request, r
     nlohmann::json json = nlohmann::json::parse(request.body());
     AppMessage receivedMessage = convertJsonToAppMessage(json);
 
-    // pripravi data
-    std::string dataToMine = receivedMessage.mineName + "_" +
+    std::string providedPassword = receivedMessage.mineName;
+
+    auto passwordFilter = bsoncxx::builder::basic::make_document(
+        bsoncxx::builder::basic::kvp("passwords.password", providedPassword)
+    );
+
+    auto result = DatabaseHandler::fetchSingleDocument("appPasswords", passwordFilter);
+
+    if (!result) {
+        response.body() = "Invalid Password / Mine not found";
+        response.result(http::status::unauthorized);
+        return;
+    }
+
+    std::string targetPassword = "";
+    int targetWorkerTypeInt = std::stoi(receivedMessage.workerType);
+
+    auto passwordsArray = result->view()["passwords"].get_array().value;
+
+    std::map<int, std::string> workerPasswords;
+
+    for (const auto& element : passwordsArray) {
+        std::string currentPass = std::string(element["password"].get_string().value);
+        int currentWorkerType = element["workerType"].get_int32().value;
+
+        workerPasswords[currentWorkerType] = currentPass;
+
+        if (currentWorkerType == targetWorkerTypeInt) {
+            targetPassword = currentPass;
+        }
+    }
+
+    if (targetPassword.empty()) {
+        response.body() = "Target WorkerType does not exist in this Mine.";
+        response.result(http::status::bad_request);
+        return;
+    }
+
+    std::string dataToMine = providedPassword + "_" +
         receivedMessage.workerType + "_" +
         receivedMessage.location + "_" +
         receivedMessage.message;
 
     MineController::saveToBlockchain(dataToMine);
 
-    NotificationController::sendMessageToUser(receivedMessage);
+    receivedMessage.mineName = targetPassword;
 
-    // Return OK to the app immediately
+    if (targetWorkerTypeInt == -1)
+    {
+        for (auto passwordObject : workerPasswords) {
+            receivedMessage.mineName = passwordObject.second;
+            receivedMessage.workerType = std::to_string(passwordObject.first);
+            NotificationController::sendMessageToUser(receivedMessage);
+        }
+    }
+    else
+    {
+        NotificationController::sendMessageToUser(receivedMessage);
+    }
+
+
     response.result(http::status::ok);
-    response.body() = "Message received and saving to blockchain.";
+    response.body() = "Message received, saved, and sent to target.";
     response.prepare_payload();
 }
 
 void NotificationController::sendMessageToUser(AppMessage receivedMessage) {
     std::vector<AppMessage> messagesToSend;
-    for (AppMessage message : appList) {
-        bool mineFlag = message.mineName == receivedMessage.mineName;
-        bool workerFlag = message.workerType == receivedMessage.workerType;
-        // bool messageFlag = message.messageType == messageType;
+    for (const AppMessage& registeredDevice : appList) {
 
-        if (mineFlag && (receivedMessage.messageType == 2 || workerFlag || receivedMessage.messageType == 1)){
-            messagesToSend.push_back(message);
+        if (registeredDevice.mineName != receivedMessage.mineName) {
+            continue;
         }
+
+        if (registeredDevice.workerType == receivedMessage.workerType || receivedMessage.messageType == 1) {
+            messagesToSend.push_back(registeredDevice);
+        }
+    }
+
+    if (messagesToSend.empty()) {
+        return;
     }
 
     try {
