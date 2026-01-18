@@ -84,7 +84,21 @@ void NotificationController::receiveDeviceInfoFromApp(const request &request, re
      */
 
     if (message.messageType == 0) {
-        appList.push_back(message);
+        bool found = false;
+
+        for (auto& registeredApp : appList) {
+            if (registeredApp.deviceId == message.deviceId) {
+                registeredApp = message;
+                found = true;
+                std::cout << " -> Device updated (already existed)." << std::endl;
+                break;
+            }
+        }
+
+        if (!found) {
+            appList.push_back(message);
+            std::cout << " -> New device added." << std::endl;
+        }
     }
 
     // SAVE TO BLOCKCHAIN

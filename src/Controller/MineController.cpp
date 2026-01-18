@@ -1388,12 +1388,10 @@ void MineController::createPasswords(const request& request, response& response,
 
     // 3. Generate workerType number of passwords.
 
-    bsoncxx::oid mineID("64b1f7e8901234567890abcd");
-
     bsoncxx::builder::stream::array passwordsArr;
     
     // Loop through worker types 1 to 15
-    for (int i = 1; i <= 15; i++)
+    for (int i = 0; i <= 15; i++)
     {
         std::string uniquePwd = generateUniqueString(18);
 
@@ -1483,8 +1481,6 @@ void MineController::getPasswords(const request& request, response& response, Ro
         response.body() = bsoncxx::to_json(errorDoc.view());
         return;
     }
-
-    bsoncxx::oid mineID("64b1f7e8901234567890abcd");
 
     auto filters = bsoncxx::builder::basic::make_document(bsoncxx::builder::basic::kvp("mineID", mineID));
 
