@@ -1390,8 +1390,7 @@ void MineController::createPasswords(const request& request, response& response,
 
     bsoncxx::builder::stream::array passwordsArr;
     
-    // Loop through worker types 1 to 15
-    for (int i = 0; i <= 15; i++)
+    for (int i = -1; i < 15; i++)
     {
         std::string uniquePwd = generateUniqueString(18);
 
