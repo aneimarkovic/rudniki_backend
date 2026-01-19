@@ -55,34 +55,19 @@ std::string NotificationController::getNotificationMessageBody(AppMessage messag
     }
 
 }
-void NotificationController::receiveDeviceInfoFromApp(const request &request, response &response, Router *r) {
+void NotificationController::receiveDeviceInfoFromApp(const request& request, response& response, Router* r) {
     std::string target = std::string(request.target());
-    // std::cout << "RECEIVED REQUEST: " << target << std::endl;
-    // std::cout << "SECOND TRY: " << request.body() << std::endl;
 
     nlohmann::json json = nlohmann::json::parse(request.body());
-    // std::cout << "JSON: " << json.dump() << std::endl;
-
-    // std::cout << "Device ID: " << json["token"] << std::endl;
-    // std::cout << "Mine name: " << json["mine_name"] << std::endl;
-    // std::cout << "Worker type: " << json["worker_role"] << std::endl;
-    // std::cout << "Message type: " << json["message_type"] << std::endl;
-
-
     AppMessage message = convertJsonToAppMessage(json);
 
     std::cout << "DEVICE FROM: [" << message.mineName << "] REGISTRED" << std::endl;
 
-    // std::cout << "Device id: " << message.deviceId <<
-    //     "\n mine name: " << message.mineName <<
-    //         "\n worker type: " << message.workerType <<
-    //             "\n message type: " << message.messageType << std::endl;
     /*
      * Message type = 0 => Add me to notification list
      * Message type = 1 => Not wearing a helemt
      * Message type = 2 => Sending message to other worker
      */
-
 
     std::string providedPassword = message.mineName;
 
@@ -94,11 +79,20 @@ void NotificationController::receiveDeviceInfoFromApp(const request &request, re
 
     if (!result) {
         response.body() = "Invalid Password / Mine not found";
-        response.result(http::status::unauthorized);
+        response.result(boost::beast::http::status::unauthorized);
         return;
     }
 
-    auto passwordsArray = result->view()["passwords"].get_array().value;
+    bsoncxx::document::view passwordView = result->view();
+    bsoncxx::oid linkedMineOid;
+    bool mineIdFound = false;
+
+    if (passwordView["mineID"] && passwordView["mineID"].type() == bsoncxx::type::k_oid) {
+        linkedMineOid = passwordView["mineID"].get_oid().value;
+        mineIdFound = true;
+    }
+
+    auto passwordsArray = passwordView["passwords"].get_array().value;
 
     for (const auto& element : passwordsArray) {
         std::string currentPass = std::string(element["password"].get_string().value);
@@ -130,6 +124,38 @@ void NotificationController::receiveDeviceInfoFromApp(const request &request, re
 
     // SAVE TO BLOCKCHAIN
     MineController::saveToBlockchain("REGISTRATION_" + message.mineName + "_" + message.workerType);
+
+    bsoncxx::builder::stream::document responseBuilder;
+    responseBuilder << "success" << true;
+
+    if (mineIdFound) {
+        auto borderFilter = bsoncxx::builder::basic::make_document(
+            bsoncxx::builder::basic::kvp("mineId", linkedMineOid)
+        );
+
+        auto borderResult = DatabaseHandler::fetchSingleDocument("bordersTest", borderFilter);
+
+        if (borderResult) {
+            bsoncxx::document::view borderView = borderResult->view();
+            if (borderView["geometry"]) {
+                responseBuilder << "geometry" << borderView["geometry"].get_value();
+            }
+            else {
+                responseBuilder << "message" << "Geometry not found in bordersTest";
+            }
+        }
+        else {
+            responseBuilder << "message" << "No borders found for this mine";
+        }
+    }
+    else {
+        responseBuilder << "message" << "MineID not linked in passwords document";
+    }
+
+    // 5. Send Response
+    response.result(boost::beast::http::status::ok);
+    response.set(boost::beast::http::field::content_type, "application/json");
+    response.body() = bsoncxx::to_json(responseBuilder.view());
 }
 
 void NotificationController::receiveMessageInfoFromApp(const request& request, response& response, Router* r) {
