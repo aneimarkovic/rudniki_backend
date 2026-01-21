@@ -15,33 +15,18 @@ std::shared_mutex Router::routesMutex{};
 */
 std::string Router::convertUrlToRegexForm(const std::string& originalUrl)
 {
-	// Pridobi pozicije vseh parametrov
-	std::vector<int> parameterPositions;
-
-	for (int i = 0; i < originalUrl.size(); i++)
-	{
-		if (originalUrl[i] == ':')
-		{
-			parameterPositions.push_back(i);
-		}
-	}
-
-	if (parameterPositions.empty())
-	{
-		return originalUrl; // Ni parametrov v URL vrni original
-	}
-
-	// Zamenja parametre v url z ([^/]+)
-	
 	std::string newUrl = originalUrl;
-	for (int position : parameterPositions)
-	{
-		int nextSlashPosition = originalUrl.find('/', position);
-		int distanceToNextSlash = (nextSlashPosition == std::string::npos)
-			? originalUrl.size() - position : nextSlashPosition - position;
+	size_t startPos = 0;
 
-		newUrl.erase(position, distanceToNextSlash);
-		newUrl.insert(position, "([^/]+)");
+	while ((startPos = newUrl.find(':', startPos)) != std::string::npos)
+	{
+		size_t endPos = newUrl.find('/', startPos);
+
+		size_t len = (endPos == std::string::npos) ? newUrl.length() - startPos : endPos - startPos;
+
+		newUrl.replace(startPos, len, "([^/]+)");
+
+		startPos += 7;
 	}
 
 	return newUrl;
@@ -150,6 +135,17 @@ void Router::routeSelector(http::verb method, std::string& URL, const request& r
 	}
 
 	std::shared_lock<std::shared_mutex> routes_lock(routesMutex);
+
+	// Preverimo če je direktni tu
+	auto exactMatch = currentRoutingTable->find(URL);
+	if (exactMatch != currentRoutingTable->end())
+	{
+		const routeFunction& function = exactMatch->second;
+		routes_lock.unlock(); 
+		function(request, response, this);
+		return;
+	}
+
 	for (const auto& pair : *currentRoutingTable) 
 	{
 		const std::string& urlPattern = pair.first;

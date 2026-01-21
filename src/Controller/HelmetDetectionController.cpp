@@ -1,4 +1,4 @@
-//
+﻿//
 // Created by Anei Markovic on 1/7/26.
 //
 #include <iostream>
@@ -11,6 +11,7 @@
 #include "DatabaseHandler.hpp"
 #include "Controller/NotificationController.h"
 #include "Controller/MineController.hpp"
+#include "Model/HelmetDataModel.hpp"
 
 void HelmetDetectionController::getCVAlgorithmData(const request& request, response& response, Router* r) {
     // 1. Parse the incoming JSON
@@ -44,7 +45,6 @@ void HelmetDetectionController::getCVAlgorithmData(const request& request, respo
     }
 
     bsoncxx::oid mineID = result->view()["mineID"].get_oid().value;
-    int reporterWorkerType = 0; 
 
     std::map<int, std::string> workerPasswords;
 
@@ -55,19 +55,13 @@ void HelmetDetectionController::getCVAlgorithmData(const request& request, respo
         int currentWorkerType = element["workerType"].get_int32().value;
 
         workerPasswords[currentWorkerType] = currentPass;
-
-        if (currentPass == providedPassword) {
-            reporterWorkerType = currentWorkerType;
-        }
     }
 
     bsoncxx::builder::stream::document doc{};
     doc << "mineID" << mineID
-        << "status" << status
         << "totalPersons" << totalPersons
         << "helmetsOn" << helmetsOn
         << "missingHelmet" << helmetsMissing
-        << "reporterWorkerType" << reporterWorkerType
         << "timestamp" << bsoncxx::types::b_date(std::chrono::system_clock::now());
 
     bsoncxx::document::value documentValue = doc << bsoncxx::builder::stream::finalize;
@@ -107,4 +101,256 @@ void HelmetDetectionController::getCVAlgorithmData(const request& request, respo
 
     response.result(http::status::ok);
     response.prepare_payload();
+}
+
+
+// Send data for the users specific mine
+void HelmetDetectionController::getHelmetDataForUsersMine(const request& request, response& response, Router* r)
+{
+    bsoncxx::document::value document = bsoncxx::from_json(request.body());
+    bsoncxx::document::view view = document.view();
+
+    std::string token = "";
+    auto it = request.find(boost::beast::http::field::cookie);
+    if (it != request.end())
+    {
+        auto cookie_header = std::string(it->value());
+        size_t pos = cookie_header.find("jwt=");
+        if (pos != std::string::npos) {
+            size_t start = pos + 4;
+            size_t end = cookie_header.find(";", start);
+            token = cookie_header.substr(start, end - start);
+        }
+    }
+
+    bsoncxx::document::element id = view["id"];
+    auto stringView = id.get_string().value;
+    std::string str_val(stringView.data(), stringView.size());
+
+    bsoncxx::oid mineID = bsoncxx::oid(str_val);
+
+    auto filters = bsoncxx::builder::basic::make_document(
+        bsoncxx::builder::basic::kvp("mineID", mineID)
+    );
+
+    auto projection = bsoncxx::builder::basic::make_document(
+        bsoncxx::builder::basic::kvp("mineID", bsoncxx::types::b_int32{ 0 }),
+        bsoncxx::builder::basic::kvp("_id", bsoncxx::types::b_int32{ 0 }),
+        bsoncxx::builder::basic::kvp("reporterWorkerType", bsoncxx::types::b_int32{ 0 }),
+        bsoncxx::builder::basic::kvp("status", bsoncxx::types::b_int32{ 0 })
+    );
+
+
+    std::vector<bsoncxx::document::value> result = DatabaseHandler::fetchMultipleDocuments("helmet_detections", filters.view(), projection.view());
+
+    std::vector<HelmetDataModel> models;
+    for (const auto& doc : result) {
+        HelmetDataModel model;
+        model.getFromBsonDocument(doc.view());
+        models.push_back(model);
+    }
+
+    int totalScans = 0;
+    int totalPersons = 0;
+    int totalHelmets = 0;
+    int violationCount = 0;
+
+    std::string recordsJson = "[";
+
+    for (size_t i = 0; i < models.size(); i++) {
+        totalScans++;
+        totalPersons += models[i].getTotalPersons();
+        totalHelmets += models[i].getHelmetsOn();
+
+        if (models[i].getMissingHelmet()) {
+            violationCount++;
+        }
+
+        recordsJson += models[i].toString();
+        if (i < models.size() - 1) {
+            recordsJson += ",";
+        }
+    }
+    recordsJson += "]";
+
+    double compliancePercentage = 0.0;
+    if (totalPersons > 0) {
+        compliancePercentage = (static_cast<double>(totalHelmets) / totalPersons) * 100.0;
+    }
+
+    std::string finalJson = "{";
+
+    finalJson += "\"stats\": {";
+    finalJson += "\"total_scans\": " + std::to_string(totalScans) + ",";
+    finalJson += "\"total_persons\": " + std::to_string(totalPersons) + ",";
+    finalJson += "\"total_helmets\": " + std::to_string(totalHelmets) + ",";
+    finalJson += "\"safety_violations\": " + std::to_string(violationCount) + ",";
+    finalJson += "\"compliance_percentage\": " + std::to_string(compliancePercentage);
+    finalJson += "},";
+
+    finalJson += "\"data\": " + recordsJson;
+
+    finalJson += "}";
+
+    response.body() = finalJson;
+    response.set(boost::beast::http::field::content_type, "application/json");
+}
+
+// Send all mine data, without mineIDs for database wide statistics
+void HelmetDetectionController::getHelmetDataForAllMines(const request& request, response& response, Router* r)
+{
+    auto filters = bsoncxx::builder::basic::make_document();
+    auto projection = bsoncxx::builder::basic::make_document(
+        bsoncxx::builder::basic::kvp("mineID", bsoncxx::types::b_int32{ 0 }),
+        bsoncxx::builder::basic::kvp("_id", bsoncxx::types::b_int32{ 0 })
+    );
+
+    std::vector<bsoncxx::document::value> result = DatabaseHandler::fetchMultipleDocuments(
+        "helmet_detections", filters.view(), projection.view()
+    );
+
+
+    std::vector<HelmetDataModel> models;
+    for (const auto& doc : result) {
+        HelmetDataModel model;
+        model.getFromBsonDocument(doc.view()); 
+        models.push_back(model);
+    }
+
+    int totalScans = 0;
+    int totalPersons = 0;
+    int totalHelmets = 0;
+    int violationCount = 0;
+
+    std::string recordsJson = "[";
+
+    for (size_t i = 0; i < models.size(); i++) {
+        totalScans++;
+        totalPersons += models[i].getTotalPersons();
+        totalHelmets += models[i].getHelmetsOn();
+
+        if (models[i].getMissingHelmet()) {
+            violationCount++;
+        }
+
+        recordsJson += models[i].toString();
+        if (i < models.size() - 1) {
+            recordsJson += ",";
+        }
+    }
+    recordsJson += "]";
+
+    double compliancePercentage = 0.0;
+    if (totalPersons > 0) {
+        compliancePercentage = (static_cast<double>(totalHelmets) / totalPersons) * 100.0;
+    }
+
+    std::string finalJson = "{";
+
+    finalJson += "\"stats\": {";
+    finalJson += "\"total_scans\": " + std::to_string(totalScans) + ",";
+    finalJson += "\"total_persons\": " + std::to_string(totalPersons) + ",";
+    finalJson += "\"total_helmets\": " + std::to_string(totalHelmets) + ",";
+    finalJson += "\"safety_violations\": " + std::to_string(violationCount) + ",";
+    finalJson += "\"compliance_percentage\": " + std::to_string(compliancePercentage);
+    finalJson += "},"; 
+
+    finalJson += "\"data\": " + recordsJson;
+
+    finalJson += "}";
+
+    response.body() = finalJson;
+    response.set(boost::beast::http::field::content_type, "application/json");
+}
+
+void HelmetDetectionController::getHelmetDataByDateRange(const request& request, response& response, Router* r)
+{
+    if (r->UrlArguments.size() < 2) {
+        response.result(boost::beast::http::status::bad_request);
+        response.body() = "{\"message\": \"Missing start or end timestamp.\"}";
+        return;
+    }
+
+    try {
+        long long startMillis = std::stoll(r->UrlArguments[0]);
+        long long endMillis = std::stoll(r->UrlArguments[1]);
+
+        std::chrono::system_clock::time_point startTp{ std::chrono::milliseconds{startMillis} };
+        std::chrono::system_clock::time_point endTp{ std::chrono::milliseconds{endMillis} };
+
+        auto filters = bsoncxx::builder::basic::make_document(
+            bsoncxx::builder::basic::kvp("timestamp", bsoncxx::builder::basic::make_document(
+                bsoncxx::builder::basic::kvp("$gte", bsoncxx::types::b_date{ startTp }),
+                bsoncxx::builder::basic::kvp("$lte", bsoncxx::types::b_date{ endTp })
+            ))
+        );
+
+        auto projection = bsoncxx::builder::basic::make_document(
+            bsoncxx::builder::basic::kvp("mineID", bsoncxx::types::b_int32{ 0 }),
+            bsoncxx::builder::basic::kvp("_id", bsoncxx::types::b_int32{ 0 }),
+            bsoncxx::builder::basic::kvp("reporterWorkerType", bsoncxx::types::b_int32{ 0 }),
+            bsoncxx::builder::basic::kvp("status", bsoncxx::types::b_int32{ 0 })
+        );
+
+        std::vector<bsoncxx::document::value> result = DatabaseHandler::fetchMultipleDocuments(
+            "helmet_detections",
+            filters.view(),
+            projection.view()
+        );
+
+        if (result.empty()) {
+            response.body() = "{\"message\": \"No data found for this time range.\", \"data\": []}";
+            response.set(boost::beast::http::field::content_type, "application/json");
+            return;
+        }
+
+        std::vector<HelmetDataModel> models;
+        for (const auto& doc : result) {
+            HelmetDataModel model;
+            model.getFromBsonDocument(doc.view());
+            models.push_back(model);
+        }
+
+        int totalScans = 0;
+        int totalPersons = 0;
+        int totalHelmets = 0;
+        int violationCount = 0;
+        std::string recordsJson = "[";
+
+        for (size_t i = 0; i < models.size(); i++) 
+        {
+            totalScans++;
+            totalPersons += models[i].getTotalPersons();
+            totalHelmets += models[i].getHelmetsOn();
+            if (models[i].getMissingHelmet()) violationCount++;
+
+            recordsJson += models[i].toString();
+            if (i < models.size() - 1) recordsJson += ",";
+        }
+        recordsJson += "]";
+
+        double compliancePercentage = 0.0;
+        if (totalPersons > 0) {
+            compliancePercentage = (static_cast<double>(totalHelmets) / totalPersons) * 100.0;
+        }
+
+        std::string finalJson = "{";
+        finalJson += "\"stats\": {";
+        finalJson += "\"total_scans\": " + std::to_string(totalScans) + ",";
+        finalJson += "\"total_persons\": " + std::to_string(totalPersons) + ",";
+        finalJson += "\"total_helmets\": " + std::to_string(totalHelmets) + ",";
+        finalJson += "\"safety_violations\": " + std::to_string(violationCount) + ",";
+        finalJson += "\"compliance_percentage\": " + std::to_string(compliancePercentage);
+        finalJson += "},";
+        finalJson += "\"data\": " + recordsJson;
+        finalJson += "}";
+
+        response.body() = finalJson;
+        response.set(boost::beast::http::field::content_type, "application/json");
+
+    }
+    catch (const std::exception& e) {
+        response.result(boost::beast::http::status::bad_request);
+        response.body() = "{\"message\": \"Invalid timestamp format.\"}";
+    }
 }
