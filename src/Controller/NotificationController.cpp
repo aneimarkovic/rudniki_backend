@@ -78,8 +78,13 @@ void NotificationController::receiveDeviceInfoFromApp(const request& request, re
     auto result = DatabaseHandler::fetchSingleDocument("appPasswords", passwordFilter);
 
     if (!result) {
-        response.body() = "Invalid Password / Mine not found";
+        bsoncxx::builder::stream::document responseBuilder;
+        responseBuilder << "success" << false;
+        response.set(http::field::content_type, "application/json");
+        response.body() = bsoncxx::to_json(responseBuilder.view());
+        std::cout << "VRACAM: " << response.body() << std::endl;
         response.result(boost::beast::http::status::unauthorized);
+        response.prepare_payload();
         return;
     }
 

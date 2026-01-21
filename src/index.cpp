@@ -95,7 +95,7 @@ int main()
 
         //DatabaseHandler::create2dsphereIndex("bordersTest", "geometry") ? std::cout << "OK\n" : std::cout << "NE OK\n";
 
-        HttpServer server("127.0.0.1", "8080");
+        HttpServer server("0.0.0.0", "8080");
         server.runServer();
     }
     catch (const std::exception &ex)
