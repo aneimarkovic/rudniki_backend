@@ -62,6 +62,8 @@ int main()
         Router::createGetRoute("/mine/statistics", MineController::getStatistics);
         Router::createGetRoute("/mine/history/:id", MineController::getMineHistory);
         Router::createGetRoute("/mine/getPasswords", MineController::getPasswords);
+        Router::createGetRoute("/mine/getAllHelmetData", HelmetDetectionController::getHelmetDataForAllMines);
+        Router::createGetRoute("/mines/helmetDataRange/:start/:end", HelmetDetectionController::getHelmetDataByDateRange);
 
         Router::createDeleteRoute("/mine/delete/:id", MineController::deleteMine);
         Router::createDeleteRoute("/mine/deleteWorker", MineController::deleteWorker);
@@ -76,6 +78,7 @@ int main()
 
         Router::createPutRoute("/user/update", UserController::updateUser);
 
+        Router::createGetRoute("/user/helmetData", HelmetDetectionController::getHelmetDataForUsersMine);
         Router::createGetRoute("/user/mines/:id", MineController::getMineBasedOnOwner);
         Router::createGetRoute("/user/:id", UserController::getUser);
 

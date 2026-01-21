@@ -1,6 +1,8 @@
 // Created by Anei Markovič 4.5.2025
 #include "DatabaseHandler.hpp"
 
+#include <mongocxx/options/find.hpp>
+
 std::unique_ptr<mongocxx::instance> DatabaseHandler::instance = nullptr;
 mongocxx::uri DatabaseHandler::uri("mongodb+srv://darkosever:KeriBurazi69@imerudniki.a8kpflt.mongodb.net/?retryWrites=true&w=majority&appName=ImeRudniki");
 mongocxx::options::client DatabaseHandler::clientOptions{};
@@ -128,7 +130,7 @@ std::optional<bsoncxx::document::value> DatabaseHandler::fetchSingleDocument(con
 /*
     Funkcija vzame [collectionName] in [filters] in glede na to vrne več objekt če jih najde
 */
-std::vector<bsoncxx::document::value> DatabaseHandler::fetchMultipleDocuments(const std::string &collectionName, bsoncxx::document::view filters)
+std::vector<bsoncxx::document::value> DatabaseHandler::fetchMultipleDocuments(const std::string &collectionName, bsoncxx::document::view filters, bsoncxx::document::view projection)
 {
     std::vector<bsoncxx::document::value> documents;
     try
@@ -137,18 +139,22 @@ std::vector<bsoncxx::document::value> DatabaseHandler::fetchMultipleDocuments(co
         const auto db = (*client)[dbName];
         auto collection = db[collectionName];
 
+        mongocxx::options::find options;
 
-        mongocxx::cursor cursor = collection.find(filters);
+        if (!projection.empty()) {
+            options.projection(projection);
+        }
+
+        mongocxx::cursor cursor = collection.find(filters, options);
 
         for (bsoncxx::document::view doc_view : cursor)
         {
-//            std::cout << bsoncxx::to_json(doc_view) << std::endl;
             documents.emplace_back(doc_view);
         }
 
         return documents;
     }
-    catch (const std::exception &e)
+    catch (const std::exception& e)
     {
         std::cerr << "Splošna napaka pri branju več dokumentov iz zbirke '" << collectionName << "': " << e.what() << std::endl;
         return {};
